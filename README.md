@@ -26,6 +26,14 @@ Deploy the `dist` folder:
 2. Set build command: `npm run build`, output directory: `dist`.
 3. Deploy. No serverless functions or database required for demo mode.
 
+### Field check-in (runner → crew)
+
+The **Check in from the field** section lets the runner submit their current km and clock time from their phone; the crew sees it on their device and the app treats it as a micro-split for progress and ETAs.
+
+- **Backend:** The `/api/checkin` serverless function (in `api/checkin.js`) stores one check-in per bib. It uses [Upstash Redis](https://upstash.com) (serverless-friendly).
+- **Setup:** In the Vercel project, add a Redis database (e.g. via [Vercel + Upstash integration](https://upstash.com/docs/redis/howto/vercelintegration)) and set env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
+- **Local dev:** `npm run dev` does not run the API. To test check-in locally, use `vercel dev` or deploy and test against the deployed URL. The app uses the same origin for `/api/checkin` in production.
+
 ## Live results
 
 The app fetches live split data from the EDS results site when **Use demo data** is off and a **Bib number** is set.
@@ -45,5 +53,5 @@ The app fetches live split data from the EDS results site when **Use demo data**
 ## Tech
 
 - Static SPA: Vite + vanilla JS.
-- No database; config in `localStorage`.
+- Config in `localStorage`; field check-ins in Upstash Redis via `/api/checkin`.
 - Optional: one Vercel serverless proxy only if the live results endpoint is CORS-blocked.

@@ -1,0 +1,98 @@
+/**
+ * Field check-in API for Rocky 100K crew tracker.
+ * GET ?bib=X — return latest check-in for bib (or 404).
+ * POST body: { bib, km, clockTime } — store check-in (one per bib, overwrites).
+ * Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (e.g. from Vercel + Upstash).
+ */
+
+const RACE_DISTANCE_KM = 100.12;
+const CHECKIN_TTL_SEC = 24 * 60 * 60; // 24h
+const TIME_PATTERN = /^\d{1,2}:\d{2}\s*[AP]M$/i;
+
+function cors(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
+function json(res, status, data) {
+  cors(res);
+  res.setHeader('Content-Type', 'application/json');
+  res.status(status).end(JSON.stringify(data));
+}
+
+export default async function handler(req, res) {
+  cors(res);
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    json(res, 405, { error: 'Method not allowed' });
+    return;
+  }
+
+  let redis;
+  try {
+    const { Redis } = await import('@upstash/redis');
+    redis = Redis.fromEnv();
+  } catch (e) {
+    console.error('Redis init failed', e);
+    json(res, 503, { error: 'Check-in store not configured (Redis env missing)' });
+    return;
+  }
+
+  const bib = (req.query?.bib ?? (req.body && req.body.bib) ?? '').toString().trim();
+  if (!bib) {
+    json(res, 400, { error: 'Missing bib' });
+    return;
+  }
+
+  const key = `rocky:checkin:${bib}`;
+
+  if (req.method === 'GET') {
+    try {
+      const raw = await redis.get(key);
+      if (raw == null) {
+        json(res, 404, { error: 'No check-in for this bib' });
+        return;
+      }
+      json(res, 200, raw);
+    } catch (e) {
+      console.error('Redis GET failed', e);
+      json(res, 500, { error: 'Failed to read check-in' });
+    }
+    return;
+  }
+
+  // POST
+  let body = req.body;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      json(res, 400, { error: 'Invalid JSON body' });
+      return;
+    }
+  }
+  const km = body?.km != null ? Number(body.km) : NaN;
+  const clockTime = (body?.clockTime ?? '').toString().trim();
+  if (Number.isNaN(km) || km < 0 || km > RACE_DISTANCE_KM) {
+    json(res, 400, { error: 'Invalid km (0–100.12)' });
+    return;
+  }
+  if (!TIME_PATTERN.test(clockTime)) {
+    json(res, 400, { error: 'Invalid clock time (e.g. 2:30 PM)' });
+    return;
+  }
+
+  const value = { km, clockTime, at: new Date().toISOString() };
+  try {
+    await redis.set(key, value, { ex: CHECKIN_TTL_SEC });
+    json(res, 200, value);
+  } catch (e) {
+    console.error('Redis SET failed', e);
+    json(res, 500, { error: 'Failed to save check-in' });
+  }
+}
