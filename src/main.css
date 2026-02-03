@@ -47,6 +47,88 @@ body {
   margin: 0.25rem 0 0;
 }
 
+.race-progress {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.race-progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.race-progress-emoji {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.race-progress-track {
+  flex: 1;
+  position: relative;
+  height: 1.25rem;
+  min-width: 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 999px;
+  overflow: visible;
+}
+
+.race-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.race-progress-fill-anim {
+  transition: width 0.7s ease-out;
+}
+
+.race-progress-runner {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) scaleX(-1);
+  font-size: 1.5rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+  transition: left 0.7s ease-out;
+}
+
+.race-progress-runner-anim {
+  animation: race-runner-jiggle 0.5s ease-in-out 20;
+}
+
+@keyframes race-runner-jiggle {
+  0%, 100% {
+    transform: translate(-50%, -50%) scaleX(-1) rotate(-2deg) translateY(0);
+  }
+  25% {
+    transform: translate(-50%, -50%) scaleX(-1) rotate(1.5deg) translateY(-1px);
+  }
+  50% {
+    transform: translate(-50%, -50%) scaleX(-1) rotate(-2deg) translateY(0);
+  }
+  75% {
+    transform: translate(-50%, -50%) scaleX(-1) rotate(1.5deg) translateY(-1px);
+  }
+}
+
+.race-progress-total {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
 .hero {
   background: var(--surface);
   border-radius: var(--radius);

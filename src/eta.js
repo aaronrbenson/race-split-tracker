@@ -117,10 +117,14 @@ export function computeETAs(splits) {
     };
   });
 
-  const lastSplitLabel =
-    last.splitId && SPLITS_100K_KM.find((s) => s.id === last.splitId)
-      ? SPLITS_100K_KM.find((s) => s.id === last.splitId).label
-      : `${lastKm.toFixed(1)} km`;
+  let lastSplitLabel = `${lastKm.toFixed(1)} km`;
+  if (last.splitId) {
+    const match = last.splitId.match(/^split(\d)$/);
+    if (match) {
+      const n = parseInt(match[1], 10);
+      lastSplitLabel = n === 6 ? 'Split 6/6 (Finish)' : `Split ${n}/6`;
+    }
+  }
 
   return {
     lastSplit: {

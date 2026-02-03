@@ -1,9 +1,16 @@
-import { AID_STATIONS_KM, DEMO_RUNNER, getRandomDemoRunner } from './data.js';
+import { AID_STATIONS_KM, DEMO_RUNNER, getRandomDemoRunner, RACE_DISTANCE_KM } from './data.js';
 import { computeETAs } from './eta.js';
 import { fetchRunnerInfo } from './edsFetcher.js';
 
 const DEFAULT_RESULTS_URL = 'http://edsresults.com/2025rr100/';
 const DEFAULT_BIB = 'TBD';
+
+/** Emoji by race phase: first 33k runner, middle 33k sweat smile, final stretch skull. */
+function getProgressEmoji(km) {
+  if (km < 33) return '🏃';
+  if (km < 66) return '😅';
+  return '💀';
+}
 
 function getConfig() {
   return {
@@ -19,14 +26,41 @@ function setConfig({ resultsUrl, bib, useDemo }) {
   if (useDemo != null) localStorage.setItem('rocky_use_demo', useDemo ? 'true' : 'false');
 }
 
+function renderRaceProgress(container, lastSplit, totalRaceTime) {
+  if (!container) return;
+  const progressKm = lastSplit?.km ?? 0;
+  const progressPct = Math.min(100, Math.max(0, (progressKm / RACE_DISTANCE_KM) * 100));
+  const totalDisplay = totalRaceTime || '—';
+  const progressEmoji = getProgressEmoji(progressKm);
+  container.innerHTML = `
+    <div class="race-progress-bar-wrap">
+      <span class="race-progress-emoji" aria-hidden="true">🏁</span>
+      <div class="race-progress-track">
+        <div class="race-progress-fill race-progress-fill-anim" style="width: 0"></div>
+        <span class="race-progress-runner race-progress-runner-anim" style="left: 0" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>
+      </div>
+      <span class="race-progress-emoji" aria-hidden="true">🎯</span>
+    </div>
+    <p class="race-progress-total">Total: ${totalDisplay}</p>
+  `;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const fill = container.querySelector('.race-progress-fill');
+      const runner = container.querySelector('.race-progress-runner');
+      if (fill) fill.style.width = `${progressPct}%`;
+      if (runner) runner.style.left = `${progressPct}%`;
+    });
+  });
+}
+
 function renderLastSplit(container, lastSplit) {
   if (!container) return;
   if (!lastSplit) {
-    container.innerHTML = '<p class="label">Last check-in</p><p>No split data yet. Use demo mode or enter results URL + bib.</p>';
+    container.innerHTML = '<p class="label">Last recorded split</p><p>No split data yet. Use demo mode or enter results URL + bib.</p>';
     return;
   }
   container.innerHTML = `
-    <p class="label">Last check-in</p>
+    <p class="label">Last recorded split</p>
     <p>${lastSplit.label} — ${lastSplit.km.toFixed(1)} km at ${lastSplit.clockTime}</p>
   `;
 }
@@ -52,7 +86,6 @@ function renderProgressLine(container, lastSplit, etas) {
   if (!container) return;
   const lastSplitKm = lastSplit?.km ?? 0;
   const { last, next } = getLastNextStations(lastSplitKm, etas);
-  const dash = '—'.repeat(6);
 
   const lastTime = last ? last.eta : '—';
   const lastName = last ? `@ ${last.name}` : 'Start';
@@ -70,7 +103,7 @@ function renderProgressLine(container, lastSplit, etas) {
         <span class="progress-time">${lastTime}</span>
         <span class="progress-name">${lastName}</span>
       </div>
-      <span class="progress-track" aria-hidden="true">${dash} <span class="progress-runner">🏃</span> ${dash}</span>
+      <span class="progress-track" aria-hidden="true"><span class="progress-runner">🏃</span></span>
       <div class="progress-station progress-next">
         <span class="progress-time-label">${nextTimeLabel}</span>
         <span class="progress-time">${nextTime}</span>
@@ -235,6 +268,7 @@ function refresh() {
       splitId: s.splitId,
     }));
     const { lastSplit, etas } = computeETAs(splits);
+    renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null);
     renderLastSplit(document.getElementById('last-split'), lastSplit);
     renderProgressLine(document.getElementById('progress-line'), lastSplit, etas);
     renderETAs(document.getElementById('eta-section'), etas, lastSplit?.km ?? null);

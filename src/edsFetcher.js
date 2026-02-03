@@ -44,6 +44,7 @@ function parseRunnerPage(html, bib) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const rows = doc.querySelectorAll('tr');
   let name = 'Runner';
+  let totalRaceTime = null;
   const lapTimes = {}; // lap number (1-6) -> clock time string
 
   for (const row of rows) {
@@ -53,6 +54,9 @@ function parseRunnerPage(html, bib) {
     const value = (cells[1].textContent || '').trim();
 
     if (label === 'Name' && value) name = value;
+    if (label === 'Total Race Time' && value && /^\d{1,2}:\d{2}:\d{2}$/.test(value.trim())) {
+      totalRaceTime = value.trim();
+    }
 
     const lapMatch = label.match(/^Lap (\d) Chip Time$/i);
     if (lapMatch) {
@@ -78,7 +82,7 @@ function parseRunnerPage(html, bib) {
   }
 
   if (splits.length === 0) return null;
-  return { name, bib, splits };
+  return { name, bib, splits, totalRaceTime };
 }
 
 /**

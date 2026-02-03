@@ -11,6 +11,9 @@ export const SPLITS_100K_KM = [
   { id: 'split6', label: 'Split 6 (Finish)', km: 100.12 },
 ];
 
+/** Total 100K race distance in km (for progress %). */
+export const RACE_DISTANCE_KM = 100.12;
+
 /**
  * Aid stations from crew guide PDF, distances converted to km.
  * crewAccess: true = Tyler's (where crew can meet Aaron)
