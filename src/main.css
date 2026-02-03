@@ -644,6 +644,10 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.checkin-page .checkin-page-header-compact {
+  margin-bottom: 1rem;
+}
+
 .checkin-page .checkin-page-header h1 {
   font-size: 1.25rem;
   font-weight: 600;
@@ -654,6 +658,94 @@ body {
   font-size: 0.875rem;
   color: var(--muted);
   margin: 0.5rem 0 0;
+}
+
+.checkin-form-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  max-width: 20rem;
+  margin: 0 auto;
+}
+
+.checkin-form-field .checkin-km-wrap {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.checkin-form-field .checkin-km-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+.checkin-form-field .checkin-km-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  font-size: 2.25rem;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.checkin-form-field .checkin-km-input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.checkin-form-field .checkin-submit-primary {
+  width: 100%;
+  padding: 0.9rem 1.25rem;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.checkin-form-field .checkin-section-msg {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  min-height: 1.25rem;
+}
+
+.checkin-form-field .checkin-bib-wrap {
+  width: 100%;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.checkin-form-field .checkin-bib-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+  text-align: center;
+}
+
+.checkin-form-field .checkin-bib-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8125rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.checkin-form-field .checkin-reset-wrap {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
 }
 
 .admin-section {

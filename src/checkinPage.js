@@ -49,13 +49,17 @@ function render() {
   if (!container) return;
   const bib = (getBib() || '').trim();
   container.innerHTML = `
-    <div class="checkin-form">
-      <label for="rocky-checkin-bib">Bib number</label>
-      <input type="text" id="rocky-checkin-bib" value="${bib}" placeholder="e.g. 123" />
-      <label for="rocky-checkin-km">Kilometer</label>
-      <input type="number" id="rocky-checkin-km" min="0" max="${RACE_DISTANCE_KM}" step="0.1" placeholder="48" inputmode="decimal" />
+    <div class="checkin-form checkin-form-field">
+      <div class="checkin-km-wrap">
+        <label for="rocky-checkin-km" class="checkin-km-label">km</label>
+        <input type="number" id="rocky-checkin-km" class="checkin-km-input" min="0" max="${RACE_DISTANCE_KM}" step="0.1" placeholder="0" inputmode="decimal" enterkeyhint="done" />
+      </div>
+      <button type="button" id="rocky-checkin-submit" class="checkin-submit checkin-submit-primary">Check in</button>
       <p class="checkin-section-msg" id="rocky-checkin-msg" aria-live="polite"></p>
-      <button type="button" id="rocky-checkin-submit" class="checkin-submit">Check in</button>
+      <div class="checkin-bib-wrap">
+        <label for="rocky-checkin-bib" class="checkin-bib-label">Bib</label>
+        <input type="text" id="rocky-checkin-bib" class="checkin-bib-input" value="${bib}" placeholder="Bib" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+      </div>
       <p class="checkin-reset-wrap">
         <button type="button" id="rocky-checkin-reset" class="checkin-reset">Reset all check-ins</button>
       </p>
