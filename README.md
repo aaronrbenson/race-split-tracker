@@ -26,19 +26,15 @@ Deploy the `dist` folder:
 2. Set build command: `npm run build`, output directory: `dist`.
 3. Deploy. No serverless functions or database required for demo mode.
 
-## Live results (2026 race)
+## Live results
 
-The app is prepared for live results but needs the **exact URL** that returns runner/split data (EDS does not publish a public API).
+The app fetches live split data from the EDS results site when **Use demo data** is off and a **Bib number** is set.
 
-**How to find the results data URL**
-
-1. When the 2026 results page is live, open it in a browser.
-2. Select the **100K** event and, if possible, open a runner's split detail (e.g. click a bib).
-3. Open **DevTools → Network** and refresh or trigger the load.
-4. Find the request that returns the runner table or split times (e.g. `results.php?event=100K`, `runner.php?bib=123`, or an XHR to a JSON endpoint).
-5. Copy that URL and query pattern. You can then add it to the app's config or code so the app fetches by bib and parses split times. If the request is blocked by CORS, add a single Vercel serverless function that proxies the request and returns JSON.
-
-Until then, use **demo mode** so your crew can see the layout and ETAs with mock data.
+- **Runner detail URL**: `{baseUrl}index.php?search_type=runner_info&bib={bib}`  
+  Example: `http://edsresults.com/2025rr100/index.php?search_type=runner_info&bib=551`
+- The app uses **Lap 1–6 Chip Time** only (not gun time), so times reflect when the runner crossed each mat.
+- Set **Results page URL** to the race base URL (e.g. `http://edsresults.com/2025rr100/` for 2025; use the 2026 URL when it’s available) and **Bib number** to Aaron’s bib. Turn off **Use demo data** and click **Save & refresh**.
+- If the fetch fails (e.g. CORS or network), the app falls back to demo data and shows: *Could not load live results; showing demo data.* In that case, add a Vercel serverless proxy that fetches the runner URL and returns the HTML or parsed JSON.
 
 ## Config (stored in browser)
 

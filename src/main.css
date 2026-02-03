@@ -54,6 +54,17 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.live-fallback-msg {
+  font-size: 0.8125rem;
+  color: var(--warning);
+  margin: 0 0 0.75rem;
+  min-height: 1.25em;
+}
+
+.live-fallback-msg:empty {
+  display: none;
+}
+
 .last-split {
   font-size: 1.125rem;
   font-weight: 600;
@@ -66,6 +77,77 @@ body {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.progress-line {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.progress-line-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.progress-station {
+  flex: 0 1 auto;
+  max-width: 38%;
+  min-width: 5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.progress-station .progress-time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.progress-station .progress-name {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.progress-station .progress-time-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  opacity: 0.9;
+}
+
+.progress-station.progress-next .progress-time {
+  color: var(--accent);
+}
+
+.progress-track {
+  flex: 1 1 1.5rem;
+  min-width: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  font-size: 0.8125rem;
+}
+
+.progress-runner {
+  font-size: 4rem;
+  flex-shrink: 0;
+  display: inline-block;
+  transform: scaleX(-1);
+  line-height: 1;
 }
 
 .eta-section h2 {
@@ -97,6 +179,16 @@ body {
 
 .eta-list .crew-access {
   color: var(--accent);
+}
+
+.eta-list li.eta-cleared {
+  text-decoration: line-through;
+  opacity: 0.5;
+  color: var(--muted);
+}
+
+.eta-list li.eta-cleared.crew-access {
+  color: var(--muted);
 }
 
 .eta-list .km {
