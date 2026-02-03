@@ -28,9 +28,9 @@ async function submitFieldCheckin(bib, km, clockTime) {
   return { ok: true };
 }
 
-async function resetCheckins(bib) {
+async function resetCheckins() {
   const base = getApiBase();
-  const res = await fetch(`${base}/api/checkin?bib=${encodeURIComponent(bib)}`, { method: 'DELETE' });
+  const res = await fetch(`${base}/api/checkin`, { method: 'DELETE' });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return { ok: false, error: data.error || res.statusText || 'Failed' };
   return { ok: true };
@@ -69,19 +69,13 @@ function render() {
   const resetBtn = container.querySelector('#rocky-checkin-reset');
 
   resetBtn.addEventListener('click', async () => {
-    const bibValue = (bibEl.value || '').trim();
     msgEl.textContent = '';
     msgEl.className = 'checkin-section-msg';
-    if (!bibValue || bibValue === DEFAULT_BIB) {
-      msgEl.textContent = 'Enter your bib number first.';
-      msgEl.className = 'checkin-section-msg checkin-section-msg-error';
-      return;
-    }
     resetBtn.disabled = true;
-    const result = await resetCheckins(bibValue);
+    const result = await resetCheckins();
     resetBtn.disabled = false;
     if (result.ok) {
-      msgEl.textContent = 'Check-ins cleared for this bib.';
+      msgEl.textContent = 'All check-ins cleared.';
       msgEl.className = 'checkin-section-msg checkin-section-msg-success';
     } else {
       msgEl.textContent = result.error || 'Failed to reset.';

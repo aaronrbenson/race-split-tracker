@@ -44,6 +44,22 @@ export default async function handler(req, res) {
   }
 
   const bib = (req.query?.bib ?? (req.body && req.body.bib) ?? '').toString().trim();
+
+  if (req.method === 'DELETE' && !bib) {
+    try {
+      const keys = await redis.keys('rocky:checkin:*');
+      const count = keys.length;
+      if (count > 0) {
+        await redis.del(...keys);
+      }
+      json(res, 200, { ok: true, deleted: count });
+    } catch (e) {
+      console.error('Redis purge failed', e);
+      json(res, 500, { error: 'Failed to purge check-ins' });
+    }
+    return;
+  }
+
   if (!bib) {
     json(res, 400, { error: 'Missing bib' });
     return;
