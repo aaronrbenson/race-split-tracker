@@ -436,38 +436,8 @@ function renderQuickRef(container) {
   if (!container) return;
   container.innerHTML = `
     <h2>Quick reference</h2>
-    <p>You can see Aaron at: <strong>Tyler's Last Resort (Start/Finish)</strong> — every lap.</p>
-    <p>Target finish: 9:00–10:00 PM (~14–15 hours). Estimated arrivals above update with current pace.</p>
-  `;
-}
-
-const TYLERS_WHAT_NEEDS = {
-  start: "Cheer him off! Stay calm.",
-  prologue: "Quick wave — nothing needed.",
-  lap1: "Sock change, refill Tailwind, quick check-in.",
-  lap2: "KEY STOP — Sock change, sunscreen, ice bandana, real food.",
-  finish: "CELEBRATE!",
-};
-
-function renderTylersTable(container) {
-  const tylers = AID_STATIONS_KM.filter((a) => a.crewAccess);
-  if (!container) return;
-  const rows = tylers.map((a, i) => {
-    const visit = a.name.includes('START') ? 'START' : a.name.includes('FINISH') ? 'FINISH!' : a.name.includes('Prologue') ? 'Prologue done' : a.name.includes('Lap 1') ? 'Lap 1 done' : a.name.includes('Lap 2') ? 'Lap 2 done' : a.name;
-    const windowStr = a.early !== '—' && a.late !== '—' ? `${a.early}–${a.late}` : '—';
-    const what = a.name.includes('START') ? TYLERS_WHAT_NEEDS.start : a.name.includes('Prologue') ? TYLERS_WHAT_NEEDS.prologue : a.name.includes('Lap 1') ? TYLERS_WHAT_NEEDS.lap1 : a.name.includes('Lap 2') ? TYLERS_WHAT_NEEDS.lap2 : TYLERS_WHAT_NEEDS.finish;
-    return `<tr><td>${visit}</td><td>${a.km === 0 ? '0' : a.km.toFixed(1)}</td><td>${a.target}</td><td>${windowStr}</td><td>${what}</td></tr>`;
-  });
-  container.innerHTML = `
-    <h2>Tyler's Last Resort — where to see Aaron</h2>
-    <table>
-      <thead>
-        <tr><th>Visit</th><th>km</th><th>Target</th><th>Window</th><th>What Aaron needs</th></tr>
-      </thead>
-      <tbody>
-        ${rows.join('')}
-      </tbody>
-    </table>
+    <p>You can see Aaron at: <strong>Tyler's Last Resort (Start/Finish area)</strong> — every lap.</p>
+    <p>Target finish: 9:30 PM (window 8:30–10:30 PM, ~14.5–15.5 hours). Estimated arrivals above update with current pace.</p>
   `;
 }
 
@@ -480,9 +450,9 @@ function renderWhatToHave(container) {
       <li>Backup Tailwind / gels</li>
       <li>Sunscreen</li>
       <li>Ice bandana / cooling towel</li>
-      <li>Headlamp + fresh batteries (after ~6:30 PM)</li>
+      <li>Headlamp + fresh batteries (he'll need it after ~6:00 PM)</li>
       <li>Real food: PB&J, banana, whatever sounds good</li>
-      <li>A chair (sit 1–2 min MAX)</li>
+      <li>A chair (sit 1–2 min MAX — don't let him sit too long!)</li>
     </ul>
   `;
 }
@@ -494,9 +464,11 @@ function renderCrewTips(container) {
     <ul>
       <li>Be positive but efficient. Hand him what he needs — don't ask "what do you want?"</li>
       <li>Don't be alarmed if he looks rough. That's normal for a 100k. If he's moving, he's fine.</li>
-      <li>The Lap 2 stop (Tyler's) is the big one: sock change, ice bandana, sunscreen, real food.</li>
+      <li>The Lap 2 stop (Tyler's) is the big one. He'll be hot and tired. Sock change, ice bandana, sunscreen, real food.</li>
       <li>Weather: Starts cool (45°F), peaks ~75°F around 2–3 PM, cools to 55°F by finish.</li>
-      <li>If he's late: Don't panic. The estimated arrivals above are based on current pace — just keep an eye on the next stop.</li>
+      <li>Lap 4 will be slow — that's the plan. He's never run past 50K. Expect him to take his time.</li>
+      <li>If he's late: Don't panic. Use the "Window" column times as your outer window; estimated arrivals above update with current pace.</li>
+      <li><strong>Race strategy:</strong> Aaron is running a conservative, smart race — finish feeling strong, not a fast time. If he's "slower than expected" at Tyler's in the first laps, that's good; he's saving energy for the unknown miles ahead. Trust the plan!</li>
     </ul>
   `;
 }
@@ -563,7 +535,6 @@ export function init() {
   renderCheckinSection(document.getElementById('checkin-section'));
   renderAdminSection(document.getElementById('admin-section'));
   renderQuickRef(document.getElementById('quick-ref'));
-  renderTylersTable(document.getElementById('tylers-table'));
   renderWhatToHave(document.getElementById('what-to-have'));
   renderCrewTips(document.getElementById('crew-tips'));
   refresh();
