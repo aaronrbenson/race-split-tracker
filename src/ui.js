@@ -12,6 +12,16 @@ const ADMIN_KEY_TIME = 'rocky_admin_time';
 /** Time format expected by ETA logic: e.g. "2:30 PM", "9:15 AM" */
 const TIME_PATTERN = /^\d{1,2}:\d{2}\s*[AP]M$/i;
 
+/** Current local time as "H:MM AM/PM" for check-in. */
+function getCurrentClockTime() {
+  const d = new Date();
+  const h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
 /** Base URL for API (same origin in production). */
 function getApiBase() {
   return '';
@@ -380,32 +390,23 @@ function renderCheckinSection(container) {
   const bib = (config.bib || '').trim();
   container.innerHTML = `
     <h2 class="checkin-section-title">Check in from the field</h2>
-    <p class="checkin-section-desc">Runner: enter your current distance and time so crew sees your latest position.</p>
+    <p class="checkin-section-desc">Runner: enter your current km. We'll use your device's current time.</p>
     <div class="checkin-form">
-      <label for="rocky-checkin-time">Time of day</label>
-      <input type="text" id="rocky-checkin-time" placeholder="e.g. 2:30 PM" autocomplete="off" />
       <label for="rocky-checkin-km">Kilometer</label>
-      <input type="number" id="rocky-checkin-km" min="0" max="${RACE_DISTANCE_KM}" step="0.1" placeholder="48" />
+      <input type="number" id="rocky-checkin-km" min="0" max="${RACE_DISTANCE_KM}" step="0.1" placeholder="48" inputmode="decimal" />
       <p class="checkin-section-msg" id="rocky-checkin-msg" aria-live="polite"></p>
       <button type="button" id="rocky-checkin-submit" class="checkin-submit">Check in</button>
     </div>
     ${!bib || bib === 'TBD' ? '<p class="checkin-section-hint">Set your bib number in Settings so check-ins are saved for your crew.</p>' : ''}
   `;
 
-  const timeEl = container.querySelector('#rocky-checkin-time');
   const kmEl = container.querySelector('#rocky-checkin-km');
   const msgEl = container.querySelector('#rocky-checkin-msg');
   const submitBtn = container.querySelector('#rocky-checkin-submit');
 
   submitBtn.addEventListener('click', async () => {
-    const rawTime = timeEl.value;
-    const time = normalizeTimeInput(rawTime);
     const kmRaw = kmEl.value.trim();
     msgEl.textContent = '';
-    if (!TIME_PATTERN.test(time)) {
-      msgEl.textContent = 'Enter time like 2:30 PM or 9:15 AM';
-      return;
-    }
     const km = parseFloat(kmRaw, 10);
     if (kmRaw === '' || Number.isNaN(km) || km < 0 || km > RACE_DISTANCE_KM) {
       msgEl.textContent = `Enter a kilometer between 0 and ${RACE_DISTANCE_KM}`;
@@ -416,7 +417,8 @@ function renderCheckinSection(container) {
       return;
     }
     submitBtn.disabled = true;
-    const result = await submitFieldCheckin(bib, km, time);
+    const clockTime = getCurrentClockTime();
+    const result = await submitFieldCheckin(bib, km, clockTime);
     submitBtn.disabled = false;
     if (result.ok) {
       msgEl.textContent = 'Check-in saved. Crew will see it on refresh.';
