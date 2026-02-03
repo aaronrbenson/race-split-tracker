@@ -188,7 +188,7 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
 function renderLastSplit(container, lastSplit) {
   if (!container) return;
   if (!lastSplit) {
-    container.innerHTML = '<p class="label">Last recorded split</p><p>No split data yet. Set a test position below or enter a bib for live results.</p>';
+    container.innerHTML = '<p class="label">Last recorded split</p><p>No split data yet.</p>';
     return;
   }
   container.innerHTML = `
@@ -418,7 +418,7 @@ function refresh() {
       if (adminActive) msgEl.textContent = `Showing test position: ${adminKm.toFixed(1)} km at ${adminTime}`;
       else if (lastSplit?.label === 'Field check-in') msgEl.textContent = 'Latest position from runner check-in.';
       else if (fallback && !noBib) msgEl.textContent = 'Could not load live results.';
-      else if (fallback && noBib) msgEl.textContent = 'Set a test position below or enter a bib for live results.';
+      else if (fallback && noBib) msgEl.textContent = '';
       else msgEl.textContent = '';
     }
   });
