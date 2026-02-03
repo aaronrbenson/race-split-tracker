@@ -103,6 +103,11 @@ body {
   transition: left 0.7s ease-out;
 }
 
+.race-progress-runner-pacer {
+  margin-left: 0.4em;
+  z-index: 0;
+}
+
 .race-progress-runner-anim {
   animation: race-runner-jiggle 0.5s ease-in-out 20;
 }
@@ -129,6 +134,31 @@ body {
   margin: 0;
 }
 
+.race-progress-celebration {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.race-progress-trophy {
+  font-size: 3rem;
+  line-height: 1;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.race-progress-celebration-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--success);
+  margin: 0 0 0.25rem;
+}
+
+.race-progress-celebration .race-progress-total {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
 .hero {
   background: var(--surface);
   border-radius: var(--radius);
@@ -153,7 +183,8 @@ body {
   margin-bottom: 1rem;
 }
 
-.last-split .label {
+.last-split .label,
+.race-progress .label {
   color: var(--muted);
   font-weight: 400;
   font-size: 0.75rem;
@@ -161,28 +192,96 @@ body {
   letter-spacing: 0.05em;
 }
 
+.race-progress .label {
+  margin: 0 0 0.5rem;
+}
+
 .progress-line {
   margin-bottom: 1rem;
   padding: 0.5rem 0;
 }
 
-.progress-line-inner {
+.hows-he-doing {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.hows-he-doing-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.hows-he-doing-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+
+.hows-he-doing-card {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.hows-he-doing-emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.hows-he-doing-message {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.progress-line-inner {
+  display: flex;
+  align-items: stretch;
   gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.progress-station {
+.progress-station-wrap {
   flex: 0 1 auto;
   max-width: 38%;
   min-width: 5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0;
+}
+
+.progress-station-label {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--surface);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-align: center;
+}
+
+.progress-station {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.15rem;
   padding: 0.5rem 0.6rem;
-  border-radius: var(--radius);
+  border-radius: 0 0 var(--radius) var(--radius);
   background: rgba(0, 0, 0, 0.2);
   text-align: center;
 }
@@ -201,15 +300,30 @@ body {
 }
 
 .progress-station .progress-time-label {
-  font-size: 0.6875rem;
+  font-size: 0.5625rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--muted);
-  opacity: 0.9;
+  opacity: 0.85;
+  margin-top: 0.15rem;
 }
 
 .progress-station.progress-next .progress-time {
   color: var(--accent);
+}
+
+.progress-next-pacer-note {
+  width: 100%;
+  text-align: center;
+  padding: 0.35rem 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: rgba(88, 166, 255, 0.1);
+  border-radius: var(--radius);
 }
 
 .progress-track {
@@ -255,8 +369,33 @@ body {
   font-size: 0.9375rem;
 }
 
+.eta-list li .eta-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex: 1;
+  min-width: 0;
+}
+
 .eta-list li:last-child {
   border-bottom: none;
+}
+
+.eta-list li.eta-section-header {
+  border-bottom: none;
+  padding: 1rem 0 0.35rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  list-style: none;
+}
+
+.eta-list li.eta-section-header:first-child {
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .eta-list .crew-access {
@@ -269,6 +408,25 @@ body {
   color: var(--muted);
 }
 
+.eta-list li.eta-row-with-reminder {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.eta-list li .pacer-reminder {
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.35rem;
+  border-radius: var(--radius);
+  background: rgba(88, 166, 255, 0.12);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .eta-list li.eta-cleared.crew-access {
   color: var(--muted);
 }
@@ -277,6 +435,65 @@ body {
   color: var(--muted);
   font-size: 0.8125rem;
   margin-left: 0.5rem;
+}
+
+.plan-status-global {
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem;
+}
+
+.race-progress .plan-status-global {
+  margin-top: 0.5rem;
+}
+
+.plan-status-global.plan-status-ahead {
+  color: var(--success);
+}
+
+.plan-status-global.plan-status-behind {
+  color: var(--warning);
+}
+
+.plan-status-global.plan-status-on {
+  color: var(--muted);
+}
+
+.eta-list .eta-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.eta-list .eta-time {
+  display: block;
+}
+
+.eta-list .eta-plan {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.eta-list li.plan-status-ahead .eta-plan {
+  color: var(--success);
+}
+
+.eta-list li.plan-status-behind .eta-plan {
+  color: var(--warning);
+}
+
+.progress-station .progress-station-plan {
+  font-size: 0.6875rem;
+  color: var(--muted);
+  margin-top: 0.1rem;
+}
+
+.progress-station .progress-station-plan.plan-status-ahead {
+  color: var(--success);
+}
+
+.progress-station .progress-station-plan.plan-status-behind {
+  color: var(--warning);
 }
 
 .config {
@@ -320,6 +537,73 @@ body {
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
+}
+
+.admin-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.admin-section h2 {
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+}
+
+.admin-section-desc {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+
+.admin-section label {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+  color: var(--muted);
+}
+
+.admin-section input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9375rem;
+}
+
+.admin-section-error {
+  font-size: 0.8125rem;
+  color: var(--warning);
+  margin: 0 0 0.5rem;
+  min-height: 1.25rem;
+}
+
+.admin-section-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-section-actions button {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.admin-section-actions button:last-child {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .crew-guide section {

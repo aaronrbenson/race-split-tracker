@@ -15,75 +15,26 @@ export const SPLITS_100K_KM = [
 export const RACE_DISTANCE_KM = 100.12;
 
 /**
- * Aid stations from crew guide PDF, distances converted to km.
+ * Aid stations from crew guide v2 (conservative pacing). Distances in km.
+ * Lap names kept as: Prologue, Lap 1, Lap 2 at Tyler's.
  * crewAccess: true = Tyler's (where crew can meet Aaron)
  */
 export const AID_STATIONS_KM = [
   { name: "START — Tyler's", km: 0, target: '7:00 AM', early: '—', late: '—', cutoff: '—', crewAccess: true },
-  { name: "Tyler's (Prologue done)", km: 3.54, target: '7:16 AM', early: '7:12 AM', late: '7:20 AM', cutoff: '—', crewAccess: true },
-  { name: 'Gate', km: 9.66, target: '7:44 AM', early: '7:38 AM', late: '7:55 AM', cutoff: '—', crewAccess: false },
-  { name: 'Nature Center', km: 18.19, target: '8:23 AM', early: '8:13 AM', late: '8:40 AM', cutoff: '—', crewAccess: false },
-  { name: 'Dam Nation', km: 26.23, target: '9:00 AM', early: '8:47 AM', late: '9:22 AM', cutoff: '—', crewAccess: false },
-  { name: "Tyler's (Lap 1 done)", km: 35.73, target: '9:55 AM', early: '9:35 AM', late: '10:30 AM', cutoff: '—', crewAccess: true },
-  { name: 'Gate', km: 41.84, target: '10:28 AM', early: '10:05 AM', late: '11:08 AM', cutoff: '—', crewAccess: false },
-  { name: 'Nature Center', km: 50.38, target: '11:12 AM', early: '10:45 AM', late: '12:00 PM', cutoff: '—', crewAccess: false },
-  { name: 'Dam Nation', km: 58.42, target: '11:55 AM', early: '11:22 AM', late: '12:50 PM', cutoff: '—', crewAccess: false },
-  { name: "Tyler's (Lap 2 done)", km: 67.9, target: '1:45 PM', early: '1:00 PM', late: '2:30 PM', cutoff: '7:36 AM*', crewAccess: true },
-  { name: 'Gate', km: 74.03, target: '2:40 PM', early: '1:50 PM', late: '3:45 PM', cutoff: '8:48 AM*', crewAccess: false },
-  { name: 'Nature Center', km: 82.43, target: '4:00 PM', early: '2:50 PM', late: '5:30 PM', cutoff: '10:30 AM*', crewAccess: false },
-  { name: 'Dam Nation', km: 90.47, target: '5:20 PM', early: '4:00 PM', late: '7:00 PM', cutoff: '12:06 PM*', crewAccess: false },
-  { name: 'FINISH — Tyler\'s', km: 99.94, target: '9:00 PM', early: '8:00 PM', late: '10:00 PM', cutoff: '2:00 PM*', crewAccess: true },
+  { name: "Tyler's (Prologue done)", km: 3.54, target: '7:20 AM', early: '7:12 AM', late: '7:28 AM', cutoff: '—', crewAccess: true },
+  { name: 'Gate', km: 9.66, target: '7:50 AM', early: '7:42 AM', late: '8:00 AM', cutoff: '—', crewAccess: false },
+  { name: 'Nature Center', km: 18.19, target: '8:32 AM', early: '8:18 AM', late: '8:50 AM', cutoff: '—', crewAccess: false },
+  { name: 'Dam Nation', km: 26.23, target: '9:12 AM', early: '8:55 AM', late: '9:35 AM', cutoff: '—', crewAccess: false },
+  { name: "Tyler's (Lap 1 done)", km: 35.73, target: '10:08 AM', early: '9:45 AM', late: '10:35 AM', cutoff: '—', crewAccess: true },
+  { name: 'Gate', km: 41.84, target: '10:45 AM', early: '10:18 AM', late: '11:18 AM', cutoff: '—', crewAccess: false },
+  { name: 'Nature Center', km: 50.38, target: '11:35 AM', early: '11:00 AM', late: '12:15 PM', cutoff: '—', crewAccess: false },
+  { name: 'Dam Nation', km: 58.42, target: '12:22 PM', early: '11:48 AM', late: '1:00 PM', cutoff: '—', crewAccess: false },
+  { name: "Tyler's (Lap 2 done)", km: 67.9, target: '2:00 PM', early: '1:15 PM', late: '2:45 PM', cutoff: '7:36 AM*', crewAccess: true },
+  { name: 'Gate', km: 74.03, target: '2:58 PM', early: '2:08 PM', late: '4:00 PM', cutoff: '8:48 AM*', crewAccess: false },
+  { name: 'Nature Center', km: 82.43, target: '4:22 PM', early: '3:25 PM', late: '5:45 PM', cutoff: '10:30 AM*', crewAccess: false },
+  { name: 'Dam Nation', km: 90.47, target: '5:45 PM', early: '4:45 PM', late: '7:15 PM', cutoff: '12:06 PM*', crewAccess: false },
+  { name: 'FINISH — Tyler\'s', km: 99.94, target: '9:30 PM', early: '8:30 PM', late: '10:30 PM', cutoff: '2:00 PM*', crewAccess: true },
 ];
 
 /** Race start time (race clock 0). Feb 7, 2026 7:00 AM local. */
 export const RACE_START_DATE = new Date('2026-02-07T07:00:00');
-
-function formatMinutesToClock(totalMinutes) {
-  const h = Math.floor(totalMinutes / 60) % 24;
-  const m = Math.floor(totalMinutes % 60);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const hour = h % 12 || 12;
-  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
-}
-
-/**
- * Returns a demo runner with a random position (0–6 splits completed) and plausible chip times.
- * Used when demo mode is on or when live fetch fails.
- */
-export function getRandomDemoRunner() {
-  const startMinutes = 7 * 60; // 7:00 AM
-  const numSplits = Math.floor(Math.random() * 7); // 0, 1, 2, 3, 4, 5, or 6
-  const splits = [];
-  let prevMinutes = startMinutes;
-  let prevKm = 0;
-  for (let i = 0; i < numSplits; i++) {
-    const split = SPLITS_100K_KM[i];
-    const segmentKm = split.km - prevKm;
-    const minPerKm = 7 + Math.random() * 3; // 7–10 min/km
-    const segmentMinutes = segmentKm * minPerKm;
-    prevMinutes += segmentMinutes;
-    prevKm = split.km;
-    splits.push({
-      splitId: split.id,
-      km: split.km,
-      clockTime: formatMinutesToClock(prevMinutes),
-    });
-  }
-  return {
-    name: 'Aaron Benson',
-    bib: 'TBD',
-    splits,
-  };
-}
-
-/** Fixed demo runner (e.g. when random is not desired). */
-export const DEMO_RUNNER = {
-  name: 'Aaron Benson',
-  bib: 'TBD',
-  splits: [
-    { splitId: 'split1', km: 12.71, clockTime: '8:15 AM' },
-    { splitId: 'split2', km: 35.41, clockTime: '9:50 AM' },
-    { splitId: 'split3', km: 44.9, clockTime: '11:15 AM' },
-    { splitId: 'split4', km: 67.74, clockTime: '1:30 PM' },
-  ],
-};
