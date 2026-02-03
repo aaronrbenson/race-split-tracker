@@ -748,6 +748,12 @@ body {
   padding-top: 0.75rem;
 }
 
+.checkin-page-admin-wrap {
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .admin-section {
   margin-bottom: 1.5rem;
   padding: 1rem;

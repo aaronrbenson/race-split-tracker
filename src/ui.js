@@ -330,60 +330,6 @@ function normalizeTimeInput(str) {
   return s;
 }
 
-function renderAdminSection(container) {
-  if (!container) return;
-  const admin = getAdminOverride();
-  const currentTime = admin ? admin.clockTime : '';
-  const currentKm = admin ? String(admin.km) : '';
-  container.innerHTML = `
-    <h2>Test position (admin)</h2>
-    <p class="admin-section-desc">Simulate a runner position to test the page without live results.</p>
-    <label for="rocky-admin-time">Time of day</label>
-    <input type="text" id="rocky-admin-time" value="${currentTime}" placeholder="e.g. 2:30 PM" />
-    <label for="rocky-admin-km">Kilometer</label>
-    <input type="number" id="rocky-admin-km" value="${currentKm}" min="0" max="${RACE_DISTANCE_KM}" step="0.1" placeholder="45" />
-    <p class="admin-section-error" id="rocky-admin-error" aria-live="polite"></p>
-    <div class="admin-section-actions">
-      <button type="button" id="rocky-admin-submit">Submit</button>
-      <button type="button" id="rocky-admin-clear">Clear</button>
-    </div>
-  `;
-
-  const timeEl = container.querySelector('#rocky-admin-time');
-  const kmEl = container.querySelector('#rocky-admin-km');
-  const errorEl = container.querySelector('#rocky-admin-error');
-
-  container.querySelector('#rocky-admin-submit').addEventListener('click', () => {
-    const rawTime = timeEl.value;
-    const time = normalizeTimeInput(rawTime);
-    const kmRaw = kmEl.value.trim();
-    errorEl.textContent = '';
-    if (!TIME_PATTERN.test(time)) {
-      errorEl.textContent = 'Enter time like 2:30 PM or 9:15 AM';
-      return;
-    }
-    const km = parseFloat(kmRaw, 10);
-    if (kmRaw === '' || Number.isNaN(km) || km < 0 || km > RACE_DISTANCE_KM) {
-      errorEl.textContent = `Enter a kilometer between 0 and ${RACE_DISTANCE_KM}`;
-      return;
-    }
-    localStorage.setItem(ADMIN_KEY_ACTIVE, 'true');
-    localStorage.setItem(ADMIN_KEY_KM, String(km));
-    localStorage.setItem(ADMIN_KEY_TIME, time);
-    refresh();
-  });
-
-  container.querySelector('#rocky-admin-clear').addEventListener('click', () => {
-    localStorage.removeItem(ADMIN_KEY_ACTIVE);
-    localStorage.removeItem(ADMIN_KEY_KM);
-    localStorage.removeItem(ADMIN_KEY_TIME);
-    errorEl.textContent = '';
-    timeEl.value = '';
-    kmEl.value = '';
-    refresh();
-  });
-}
-
 function renderQuickRef(container) {
   if (!container) return;
   container.innerHTML = `
@@ -484,7 +430,6 @@ function refresh() {
 
 export function init() {
   renderConfig(document.getElementById('config-section'));
-  renderAdminSection(document.getElementById('admin-section'));
   renderQuickRef(document.getElementById('quick-ref'));
   renderWhatToHave(document.getElementById('what-to-have'));
   renderCrewTips(document.getElementById('crew-tips'));
