@@ -254,19 +254,19 @@ function getHowsHeDoingState(lastSplit, planDeltaAtLastSplit) {
   const km = lastSplit.km ?? 0;
   const early = km < 35;
   if (delta < -15) {
-    return { emoji: '🚀', message: early ? 'Crushing it — maybe ease off a touch?' : 'Ahead of plan. Looking good!' };
+    return { emoji: '🚀', message: early ? 'He\'s flying! Someone tell him it\'s a long day.' : 'Ahead of schedule and feeling dangerous.' };
   }
-  if (delta <= 15) return { emoji: '✅', message: 'Right on track!' };
-  if (delta <= 60) return { emoji: '😅', message: 'A little behind, but nothing to worry about.' };
-  if (delta <= 120) return { emoji: '⚠️', message: 'Behind schedule. Stay steady.' };
-  return { emoji: '🆘', message: 'Houston, we have a problem.' };
+  if (delta <= 15) return { emoji: '✅', message: 'Smooth sailing. Right on plan.' };
+  if (delta <= 60) return { emoji: '😅', message: 'A little behind, but he\'s been through worse.' };
+  if (delta <= 120) return { emoji: '⚠️', message: 'Running behind. Time to prep the good snacks.' };
+  return { emoji: '🆘', message: 'Uh oh. Break out the pizza and prayers.' };
 }
 
 function renderHowsHeDoing(container, lastSplit, planDeltaAtLastSplit) {
   if (!container) return;
   const state = getHowsHeDoingState(lastSplit, planDeltaAtLastSplit);
   if (!state) {
-    container.innerHTML = '<p class="hows-he-doing-empty">Set a test position to see how he\'s doing.</p>';
+    container.innerHTML = '<p class="hows-he-doing-empty">Waiting on Aaron to make his move...</p>';
     return;
   }
   container.innerHTML = `
