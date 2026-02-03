@@ -58,6 +58,26 @@ async function resetCheckins() {
   return { ok: true };
 }
 
+async function fetchBibFromServer() {
+  const base = getApiBase();
+  const res = await fetch(`${base}/api/checkin`);
+  if (!res.ok) return null;
+  const data = await res.json().catch(() => ({}));
+  const bib = data?.bib != null ? String(data.bib).trim() : '';
+  return bib || null;
+}
+
+async function saveBibToServer(bib) {
+  const base = getApiBase();
+  const res = await fetch(`${base}/api/checkin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bib }),
+  });
+  if (!res.ok) return false;
+  return true;
+}
+
 function getBib() {
   return localStorage.getItem(BIB_KEY) || DEFAULT_BIB;
 }
@@ -66,10 +86,15 @@ function setBib(bib) {
   localStorage.setItem(BIB_KEY, bib || DEFAULT_BIB);
 }
 
-function render() {
+async function render() {
   const container = document.getElementById('checkin-section');
   if (!container) return;
-  const bib = (getBib() || '').trim();
+  let bib = (getBib() || '').trim();
+  const serverBib = await fetchBibFromServer();
+  if (serverBib != null && serverBib !== '') {
+    bib = serverBib;
+    setBib(bib);
+  }
   container.innerHTML = `
     <div class="checkin-form checkin-form-field">
       <div class="checkin-km-wrap">
@@ -93,6 +118,14 @@ function render() {
   const msgEl = container.querySelector('#rocky-checkin-msg');
   const submitBtn = container.querySelector('#rocky-checkin-submit');
   const resetBtn = container.querySelector('#rocky-checkin-reset');
+
+  bibEl.addEventListener('blur', async () => {
+    const v = (bibEl.value || '').trim();
+    if (v && v !== DEFAULT_BIB) {
+      setBib(v);
+      await saveBibToServer(v);
+    }
+  });
 
   resetBtn.addEventListener('click', async () => {
     msgEl.textContent = '';

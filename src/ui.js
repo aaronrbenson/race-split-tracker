@@ -28,6 +28,18 @@ function getApiBase() {
 }
 
 /**
+ * Fetch stored bib from server. Returns bib string or null.
+ */
+async function fetchBibFromServer() {
+  const base = getApiBase();
+  const res = await fetch(`${base}/api/checkin`);
+  if (!res.ok) return null;
+  const data = await res.json().catch(() => ({}));
+  const bib = data?.bib != null ? String(data.bib).trim() : '';
+  return bib || null;
+}
+
+/**
  * Fetch latest field check-in for bib. Returns { km, clockTime } or null.
  */
 async function fetchFieldCheckin(bib) {
@@ -307,24 +319,6 @@ function renderETAs(container, etas, lastSplitKm) {
   `;
 }
 
-function renderConfig(container) {
-  const config = getConfig();
-  if (!container) return;
-  container.innerHTML = `
-    <h2>Settings</h2>
-    <label for="rocky-bib">Bib number</label>
-    <input type="text" id="rocky-bib" value="${config.bib}" placeholder="TBD" />
-    <button type="button" id="rocky-save-config">Save & refresh</button>
-  `;
-
-  container.querySelector('#rocky-save-config').addEventListener('click', () => {
-    setConfig({
-      bib: container.querySelector('#rocky-bib').value.trim() || DEFAULT_BIB,
-    });
-    refresh();
-  });
-}
-
 function normalizeTimeInput(str) {
   const s = (str || '').trim().replace(/\s*([ap]m)$/i, (_, m) => ' ' + m.toUpperCase());
   return s;
@@ -371,7 +365,7 @@ function renderCrewTips(container) {
   `;
 }
 
-function getRunnerData() {
+async function getRunnerData() {
   const admin = getAdminOverride();
   if (admin) {
     return Promise.resolve({
@@ -382,10 +376,12 @@ function getRunnerData() {
       adminTime: admin.clockTime,
     });
   }
+  const serverBib = await fetchBibFromServer();
+  if (serverBib) setConfig({ bib: serverBib });
   const config = getConfig();
   const bib = (config.bib || '').trim();
   if (!bib || bib === 'TBD') {
-    return Promise.resolve({ runner: { splits: [], totalRaceTime: null }, fallback: true, noBib: true });
+    return { runner: { splits: [], totalRaceTime: null }, fallback: true, noBib: true };
   }
   return fetchRunnerInfo(config.resultsUrl, bib).then((runner) => {
     if (runner && runner.splits && runner.splits.length > 0) {
@@ -429,7 +425,6 @@ function refresh() {
 }
 
 export function init() {
-  renderConfig(document.getElementById('config-section'));
   renderQuickRef(document.getElementById('quick-ref'));
   renderWhatToHave(document.getElementById('what-to-have'));
   renderCrewTips(document.getElementById('crew-tips'));

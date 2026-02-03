@@ -1,7 +1,10 @@
 /**
  * Field check-in API for Rocky 100K crew tracker.
+ * GET (no query) — return { bib } from Redis (stored default bib).
  * GET ?bib=X — return latest check-in for bib (or 404).
- * POST body: { bib, km, clockTime } — store check-in (one per bib, overwrites).
+ * POST body: { bib } — store default bib in Redis.
+ * POST body: { bib, km, clockTime } — store check-in (one per bib, overwrites) and update stored bib.
+ * DELETE ?bib=X — delete check-in for bib. DELETE (no query) — purge all check-ins.
  * Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (e.g. from Vercel + Upstash).
  */
 
@@ -43,7 +46,21 @@ export default async function handler(req, res) {
     return;
   }
 
-  const bib = (req.query?.bib ?? (req.body && req.body.bib) ?? '').toString().trim();
+  const bibQuery = (req.query?.bib ?? '').toString().trim();
+  const bibBody = (req.body && req.body.bib != null) ? String(req.body.bib).trim() : '';
+
+  if (req.method === 'GET' && !bibQuery) {
+    try {
+      const storedBib = await redis.get('rocky:bib');
+      json(res, 200, { bib: storedBib != null ? String(storedBib) : '' });
+    } catch (e) {
+      console.error('Redis GET rocky:bib failed', e);
+      json(res, 500, { error: 'Failed to read config' });
+    }
+    return;
+  }
+
+  const bib = bibQuery || bibBody;
 
   if (req.method === 'DELETE' && !bib) {
     try {
@@ -103,23 +120,34 @@ export default async function handler(req, res) {
       return;
     }
   }
+
   const km = body?.km != null ? Number(body.km) : NaN;
   const clockTime = (body?.clockTime ?? '').toString().trim();
-  if (Number.isNaN(km) || km < 0 || km > RACE_DISTANCE_KM) {
-    json(res, 400, { error: 'Invalid km (0–100.12)' });
-    return;
-  }
-  if (!TIME_PATTERN.test(clockTime)) {
-    json(res, 400, { error: 'Invalid clock time (e.g. 2:30 PM)' });
+  const isCheckin = !Number.isNaN(km) && km >= 0 && km <= RACE_DISTANCE_KM && TIME_PATTERN.test(clockTime);
+
+  if (isCheckin) {
+    const value = { km, clockTime, at: new Date().toISOString() };
+    try {
+      await redis.set(key, value, { ex: CHECKIN_TTL_SEC });
+      if (bib) await redis.set('rocky:bib', bib);
+      json(res, 200, value);
+    } catch (e) {
+      console.error('Redis SET failed', e);
+      json(res, 500, { error: 'Failed to save check-in' });
+    }
     return;
   }
 
-  const value = { km, clockTime, at: new Date().toISOString() };
-  try {
-    await redis.set(key, value, { ex: CHECKIN_TTL_SEC });
-    json(res, 200, value);
-  } catch (e) {
-    console.error('Redis SET failed', e);
-    json(res, 500, { error: 'Failed to save check-in' });
+  if (bib) {
+    try {
+      await redis.set('rocky:bib', bib);
+      json(res, 200, { ok: true });
+    } catch (e) {
+      console.error('Redis SET rocky:bib failed', e);
+      json(res, 500, { error: 'Failed to save bib' });
+    }
+    return;
   }
+
+  json(res, 400, { error: 'Missing bib or check-in data (km, clockTime)' });
 }
