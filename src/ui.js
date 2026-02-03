@@ -322,7 +322,6 @@ function renderConfig(container) {
       bib: container.querySelector('#rocky-bib').value.trim() || DEFAULT_BIB,
     });
     refresh();
-    renderCheckinSection(document.getElementById('checkin-section'));
   });
 }
 
@@ -382,53 +381,6 @@ function renderAdminSection(container) {
     timeEl.value = '';
     kmEl.value = '';
     refresh();
-  });
-}
-
-function renderCheckinSection(container) {
-  if (!container) return;
-  const config = getConfig();
-  const bib = (config.bib || '').trim();
-  container.innerHTML = `
-    <h2 class="checkin-section-title">Check in from the field</h2>
-    <p class="checkin-section-desc">Runner: enter your current km. We'll use your device's current time.</p>
-    <div class="checkin-form">
-      <label for="rocky-checkin-km">Kilometer</label>
-      <input type="number" id="rocky-checkin-km" min="0" max="${RACE_DISTANCE_KM}" step="0.1" placeholder="48" inputmode="decimal" />
-      <p class="checkin-section-msg" id="rocky-checkin-msg" aria-live="polite"></p>
-      <button type="button" id="rocky-checkin-submit" class="checkin-submit">Check in</button>
-    </div>
-    ${!bib || bib === 'TBD' ? '<p class="checkin-section-hint">Set your bib number in Settings so check-ins are saved for your crew.</p>' : ''}
-  `;
-
-  const kmEl = container.querySelector('#rocky-checkin-km');
-  const msgEl = container.querySelector('#rocky-checkin-msg');
-  const submitBtn = container.querySelector('#rocky-checkin-submit');
-
-  submitBtn.addEventListener('click', async () => {
-    const kmRaw = kmEl.value.trim();
-    msgEl.textContent = '';
-    const km = parseFloat(kmRaw, 10);
-    if (kmRaw === '' || Number.isNaN(km) || km < 0 || km > RACE_DISTANCE_KM) {
-      msgEl.textContent = `Enter a kilometer between 0 and ${RACE_DISTANCE_KM}`;
-      return;
-    }
-    if (!bib || bib === 'TBD') {
-      msgEl.textContent = 'Set your bib in Settings first.';
-      return;
-    }
-    submitBtn.disabled = true;
-    const clockTime = getCurrentClockTime();
-    const result = await submitFieldCheckin(bib, km, clockTime);
-    submitBtn.disabled = false;
-    if (result.ok) {
-      msgEl.textContent = 'Check-in saved. Crew will see it on refresh.';
-      msgEl.className = 'checkin-section-msg checkin-section-msg-success';
-      refresh();
-    } else {
-      msgEl.textContent = result.error || 'Failed to save check-in.';
-      msgEl.className = 'checkin-section-msg checkin-section-msg-error';
-    }
   });
 }
 
@@ -532,7 +484,6 @@ function refresh() {
 
 export function init() {
   renderConfig(document.getElementById('config-section'));
-  renderCheckinSection(document.getElementById('checkin-section'));
   renderAdminSection(document.getElementById('admin-section'));
   renderQuickRef(document.getElementById('quick-ref'));
   renderWhatToHave(document.getElementById('what-to-have'));

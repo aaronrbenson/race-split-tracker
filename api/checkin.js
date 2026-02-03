@@ -11,7 +11,7 @@ const TIME_PATTERN = /^\d{1,2}:\d{2}\s*[AP]M$/i;
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method !== 'GET' && req.method !== 'POST') {
+  if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'DELETE') {
     json(res, 405, { error: 'Method not allowed' });
     return;
   }
@@ -62,6 +62,17 @@ export default async function handler(req, res) {
     } catch (e) {
       console.error('Redis GET failed', e);
       json(res, 500, { error: 'Failed to read check-in' });
+    }
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    try {
+      await redis.del(key);
+      json(res, 200, { ok: true });
+    } catch (e) {
+      console.error('Redis DEL failed', e);
+      json(res, 500, { error: 'Failed to reset check-in' });
     }
     return;
   }

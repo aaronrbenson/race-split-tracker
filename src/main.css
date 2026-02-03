@@ -612,6 +612,50 @@ body {
   margin: 0.75rem 0 0;
 }
 
+.checkin-reset-wrap {
+  margin: 1rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: right;
+}
+
+.checkin-reset {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.checkin-reset:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.checkin-reset:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkin-page .checkin-page-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.checkin-page .checkin-page-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.checkin-page .checkin-page-desc {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin: 0.5rem 0 0;
+}
+
 .admin-section {
   margin-bottom: 1.5rem;
   padding: 1rem;
