@@ -322,6 +322,7 @@ function renderConfig(container) {
       bib: container.querySelector('#rocky-bib').value.trim() || DEFAULT_BIB,
     });
     refresh();
+    renderCheckinSection(document.getElementById('checkin-section'));
   });
 }
 
