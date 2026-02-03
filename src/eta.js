@@ -38,7 +38,7 @@ export function computeETAs(splits) {
       etas: AID_STATIONS_KM.map((s) => ({
         name: s.name,
         km: s.km,
-        eta: '—',
+        eta: s.target && s.target !== '—' ? s.target : '—',
         crewAccess: s.crewAccess,
         planDeltaMinutes: null,
         planStatus: null,
@@ -58,7 +58,7 @@ export function computeETAs(splits) {
       etas: AID_STATIONS_KM.map((s) => ({
         name: s.name,
         km: s.km,
-        eta: '—',
+        eta: s.target && s.target !== '—' ? s.target : '—',
         crewAccess: s.crewAccess,
         planDeltaMinutes: null,
         planStatus: null,
