@@ -2,6 +2,9 @@ import { SPLITS_100K_KM } from './data.js';
 
 const RACE_START_MINUTES = 7 * 60; // 7:00 AM
 
+/** 6:00 AM CST Feb 7, 2026 — no requests to results site before this. */
+const RESULTS_ENABLED_AT_MS = new Date('2026-02-07T12:00:00.000Z').getTime();
+
 /**
  * Format minutes-from-midnight as "9:15 AM" / "1:45 PM".
  */
@@ -93,6 +96,7 @@ function parseRunnerPage(html, bib) {
  */
 export async function fetchRunnerInfo(baseUrl, bib) {
   if (!baseUrl || !bib) return null;
+  if (Date.now() < RESULTS_ENABLED_AT_MS) return null;
   const url = buildRunnerUrl(baseUrl, bib);
   try {
     const res = await fetch(url);
