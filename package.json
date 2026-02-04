@@ -12,6 +12,7 @@
     "vite": "^5.4.0"
   },
   "dependencies": {
-    "@upstash/redis": "^1.36.2"
+    "@upstash/redis": "^1.36.2",
+    "leaflet": "^1.9.4"
   }
 }

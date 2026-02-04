@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         main: 'index.html',
         checkin: 'checkin.html',
+        course: 'course.html',
       },
     },
   },

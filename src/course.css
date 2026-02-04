@@ -1,0 +1,176 @@
+/* Course page: iOS Maps style — map bottom layer, sheet on top */
+.course-body {
+  margin: 0;
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.course-app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Bottom layer: full-viewport map */
+.map-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+}
+
+/* Top layer: iOS-style sheet */
+.course-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  max-height: 52vh;
+  min-height: 200px;
+  padding: 0 0 env(safe-area-inset-bottom, 0);
+  pointer-events: none;
+}
+
+.course-sheet > * {
+  pointer-events: auto;
+}
+
+.course-sheet-inner {
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
+  max-height: calc(52vh - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 1rem 1.5rem;
+  padding-top: 0.5rem;
+}
+
+.course-sheet-handle {
+  width: 36px;
+  height: 4px;
+  margin: 8px auto 12px;
+  background: var(--muted);
+  opacity: 0.6;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.course-sheet-header {
+  margin-bottom: 1rem;
+}
+
+.course-sheet-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.course-sheet-subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+}
+
+/* Controls (inside sheet) */
+.course-controls {
+  margin-bottom: 1rem;
+}
+
+.course-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.course-control-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.course-control-row label {
+  min-width: 140px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.course-control-row input[type="number"] {
+  width: 5rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+}
+
+.course-control-row input[type="range"] {
+  flex: 1;
+  min-width: 120px;
+  max-width: 280px;
+}
+
+.course-control-row input[type="file"] {
+  font-size: 0.875rem;
+}
+
+.course-control-row button {
+  padding: 0.35rem 0.75rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.course-control-row button:hover {
+  filter: brightness(1.1);
+}
+
+.course-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.course-sheet-footer {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.course-sheet-footer a {
+  color: var(--accent);
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.course-sheet-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Runner marker: hide default Leaflet icon styling, show emoji */
+.course-runner-marker {
+  background: none !important;
+  border: none !important;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.course-runner-marker span {
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
