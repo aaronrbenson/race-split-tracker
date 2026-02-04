@@ -205,6 +205,36 @@ body.course-body #app,
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
 }
 
+/* Aid station + start/finish labels: emoji + pill label */
+.course-aid-marker {
+  background: none !important;
+  border: none !important;
+}
+
+.course-aid-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 4px 6px;
+  background: rgba(21, 29, 40, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+.course-aid-emoji {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.course-aid-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #e6edf3;
+  letter-spacing: 0.02em;
+}
+
 /* Runner marker: hide default Leaflet icon styling, show emoji, rotation for bearing */
 .course-runner-marker {
   background: none !important;

@@ -78,6 +78,20 @@ export function initMap(container, options = {}) {
     });
   }
 
+  function aidStationIcon(name) {
+    return L.divIcon({
+      className: 'course-aid-marker',
+      html: `
+        <div class="course-aid-label-wrap">
+          <span class="course-aid-emoji" aria-hidden="true">⛺</span>
+          <span class="course-aid-label">${name}</span>
+        </div>
+      `,
+      iconSize: [80, 36],
+      iconAnchor: [40, 36],
+    });
+  }
+
   function runnerIcon(bearing) {
     /* Runner emoji faces right (east); 0 = north so offset -90 so bearing 90 = 0 rotation */
     const deg = bearing != null ? Math.round(bearing) - 90 : -90;
@@ -104,8 +118,19 @@ export function initMap(container, options = {}) {
     /* Start/finish marker at loop start */
     const start = track.points[0];
     if (start) {
-      startFinishMarker = L.marker([start.lat, start.lon], { icon: poiIcon('🏁') }).addTo(map);
-      startFinishMarker.bindTooltip('Start / Finish', { permanent: false, direction: 'top', offset: [0, -12] });
+      startFinishMarker = L.marker([start.lat, start.lon], {
+        icon: L.divIcon({
+          className: 'course-aid-marker course-aid-start',
+          html: `
+            <div class="course-aid-label-wrap">
+              <span class="course-aid-emoji" aria-hidden="true">🏁</span>
+              <span class="course-aid-label">Start / Finish</span>
+            </div>
+          `,
+          iconSize: [100, 36],
+          iconAnchor: [50, 36],
+        }),
+      }).addTo(map);
     }
 
     /* Aid station markers from first-lap distances */
@@ -115,8 +140,7 @@ export function initMap(container, options = {}) {
       const trackKm = (km / loopLen) * trackLen;
       const pos = getPositionAtDistance(track.points, trackKm);
       if (pos) {
-        const m = L.marker([pos.lat, pos.lon], { icon: poiIcon('⛺') }).addTo(map);
-        m.bindTooltip(name, { permanent: false, direction: 'top', offset: [0, -12] });
+        const m = L.marker([pos.lat, pos.lon], { icon: aidStationIcon(name) }).addTo(map);
         aidStationMarkers.push(m);
       }
     }
