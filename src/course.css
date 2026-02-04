@@ -6,6 +6,13 @@
   height: 100dvh;
 }
 
+body.course-body #app,
+.course-app {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 .course-app {
   position: relative;
   width: 100%;
@@ -51,7 +58,7 @@
 }
 
 .course-sheet-inner {
-  background: var(--surface);
+  background: var(--sheet-bg);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
   flex: 1;
@@ -60,6 +67,9 @@
   -webkit-overflow-scrolling: touch;
   padding: 0 1rem 1.5rem;
   padding-top: 0.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .course-sheet-drag-area {
@@ -181,7 +191,7 @@
   text-decoration: underline;
 }
 
-/* Runner marker: hide default Leaflet icon styling, show emoji */
+/* Runner marker: hide default Leaflet icon styling, show emoji, rotation for bearing */
 .course-runner-marker {
   background: none !important;
   border: none !important;
@@ -190,7 +200,12 @@
   text-align: center;
 }
 
-.course-runner-marker span {
-  display: block;
+.course-runner-marker .course-runner-arrow {
+  display: inline-block;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+/* Hide zoom +/- buttons; pinch/zoom still works */
+.map-container .leaflet-control-zoom {
+  display: none;
 }

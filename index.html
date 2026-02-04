@@ -5,34 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aaron's Rocky 100K — Crew Tracker</title>
     <link rel="stylesheet" href="/src/main.css" />
+    <link rel="stylesheet" href="/src/course.css" />
   </head>
-  <body>
-    <div id="app">
-      <header class="header">
-        <h1>Aaron's Rocky 100K</h1>
-        <p class="subtitle">Run Tracker · Saturday, Feb 7, 2026 · Start 7:00 AM</p>
-      </header>
+  <body class="course-body">
+    <div id="app" class="course-app">
+      <!-- Bottom layer: full-screen map -->
+      <div class="map-wrapper">
+        <div id="map-container" class="map-container" aria-label="Course map"></div>
+      </div>
 
-      <section class="race-progress" id="race-progress" aria-label="Race progress"></section>
+      <!-- Top layer: iOS-style sheet with all crew tracker content -->
+      <div class="course-sheet" id="course-sheet" aria-label="Crew tracker">
+        <div class="course-sheet-drag-area" id="course-sheet-drag" aria-label="Drag to expand or collapse sheet">
+          <div class="course-sheet-handle" aria-hidden="true"></div>
+        </div>
+        <div class="course-sheet-inner">
+          <header class="header">
+            <h1>Aaron's Rocky 100K</h1>
+            <p class="subtitle">Run Tracker · Saturday, Feb 7, 2026 · Start 7:00 AM</p>
+          </header>
 
-      <section id="hows-he-doing" class="hows-he-doing" aria-label="How is he doing"></section>
+          <section class="race-progress" id="race-progress" aria-label="Race progress"></section>
 
-      <section class="hero" aria-label="Live status">
-        <p class="live-fallback-msg" id="live-fallback-msg" aria-live="polite"></p>
-        <div class="progress-line" id="progress-line" aria-label="Progress between aid stations"></div>
-        <div class="eta-section" id="eta-section"></div>
-        <div class="last-split" id="last-split"></div>
-      </section>
+          <section id="hows-he-doing" class="hows-he-doing" aria-label="How is he doing"></section>
 
-      <main class="crew-guide">
-        <section class="quick-ref" id="quick-ref"></section>
-        <section class="what-to-have" id="what-to-have"></section>
-        <section class="crew-tips" id="crew-tips"></section>
-      </main>
+          <section class="hero" aria-label="Live status">
+            <p class="live-fallback-msg" id="live-fallback-msg" aria-live="polite"></p>
+            <div class="progress-line" id="progress-line" aria-label="Progress between aid stations"></div>
+            <div class="eta-section" id="eta-section"></div>
+            <div class="last-split" id="last-split"></div>
+          </section>
 
-      <footer class="footer">
-        <p>Go Aaron!</p>
-      </footer>
+          <main class="crew-guide">
+            <section class="quick-ref" id="quick-ref"></section>
+            <section class="what-to-have" id="what-to-have"></section>
+            <section class="crew-tips" id="crew-tips"></section>
+          </main>
+
+          <footer class="footer">
+            <p>Go Aaron!</p>
+          </footer>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/main.js"></script>
   </body>

@@ -421,12 +421,32 @@ function refresh() {
       else if (fallback && noBib) msgEl.textContent = '';
       else msgEl.textContent = '';
     }
+    if (typeof __rockyOnRunnerUpdate === 'function') __rockyOnRunnerUpdate({ lastSplit });
   });
 }
 
-export function init() {
+/**
+ * @param {Object} [options] - optional
+ * @param {(arg: { lastSplit: { km: number } | null }) => void} [options.onRunnerUpdate] - called after each refresh with latest split
+ */
+export function init(options = {}) {
+  if (options.onRunnerUpdate) window.__rockyOnRunnerUpdate = options.onRunnerUpdate;
+
+  // Render dynamic sections immediately with default/empty data so they are visible before refresh() resolves
+  const { etas: defaultEtas } = computeETAs([]);
+  renderRaceProgress(document.getElementById('race-progress'), null, null);
+  renderLastSplit(document.getElementById('last-split'), null);
+  renderProgressLine(document.getElementById('progress-line'), null, defaultEtas);
+  renderHowsHeDoing(document.getElementById('hows-he-doing'), null, null);
+  renderETAs(document.getElementById('eta-section'), defaultEtas, null);
+
   renderQuickRef(document.getElementById('quick-ref'));
   renderWhatToHave(document.getElementById('what-to-have'));
   renderCrewTips(document.getElementById('crew-tips'));
+
+  // Ensure sheet content starts scrolled to top so progress/ETAs are visible
+  const sheetInner = document.querySelector('.course-sheet-inner');
+  if (sheetInner) sheetInner.scrollTop = 0;
+
   refresh();
 }

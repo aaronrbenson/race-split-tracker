@@ -59,16 +59,37 @@ export function buildTrackWithDistance(points) {
 }
 
 /**
- * Get lat/lon at a given distance along the track (linear interpolation between points).
+ * Bearing in degrees from North (0 = N, 90 = E, 180 = S, 270 = W) from point a to b.
+ */
+function bearingBetween(latA, lonA, latB, lonB) {
+  const toRad = (x) => (x * Math.PI) / 180;
+  const lat1 = toRad(latA);
+  const lat2 = toRad(latB);
+  const dLon = toRad(lonB - lonA);
+  const x = Math.sin(dLon) * Math.cos(lat2);
+  const y = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  let bearing = (Math.atan2(x, y) * 180) / Math.PI;
+  if (bearing < 0) bearing += 360;
+  return bearing;
+}
+
+/**
+ * Get lat/lon and bearing at a given distance along the track (linear interpolation between points).
  * @param {{ lat: number, lon: number, cumulKm: number }[]} track
  * @param {number} distanceKm - distance in km along the track (0 to trackLength)
- * @returns {{ lat: number, lon: number } | null}
+ * @returns {{ lat: number, lon: number, bearing: number } | null} bearing in degrees from North
  */
 export function getPositionAtDistance(track, distanceKm) {
   if (track.length === 0) return null;
   const total = track[track.length - 1].cumulKm;
-  if (total <= 0) return { lat: track[0].lat, lon: track[0].lon };
-  // Clamp to 0..total (loop: if past end, could wrap; for now we clamp)
+  if (total <= 0) {
+    const b = track.length > 1 ? track[1] : track[0];
+    return {
+      lat: track[0].lat,
+      lon: track[0].lon,
+      bearing: bearingBetween(track[0].lat, track[0].lon, b.lat, b.lon),
+    };
+  }
   let d = Math.max(0, Math.min(distanceKm, total));
   for (let i = 0; i < track.length - 1; i++) {
     const a = track[i];
@@ -76,13 +97,22 @@ export function getPositionAtDistance(track, distanceKm) {
     if (d >= a.cumulKm && d <= b.cumulKm) {
       const seg = b.cumulKm - a.cumulKm;
       const t = seg > 0 ? (d - a.cumulKm) / seg : 0;
+      const bearing = bearingBetween(a.lat, a.lon, b.lat, b.lon);
       return {
         lat: a.lat + t * (b.lat - a.lat),
         lon: a.lon + t * (b.lon - a.lon),
+        bearing,
       };
     }
   }
-  return { lat: track[track.length - 1].lat, lon: track[track.length - 1].lon };
+  const last = track.length - 1;
+  const a = track[last - 1];
+  const b = track[last];
+  return {
+    lat: track[last].lat,
+    lon: track[last].lon,
+    bearing: bearingBetween(a.lat, a.lon, b.lat, b.lon),
+  };
 }
 
 /**
@@ -98,6 +128,18 @@ export function raceKmToTrackKm(raceKm, trackLengthKm, raceStartKm = 0, raceDist
   const raceSegment = raceDistanceKm - raceStartKm;
   const raceProgress = (raceKm - raceStartKm) / raceSegment;
   return raceProgress * trackLengthKm;
+}
+
+/**
+ * Map race distance to track distance when the race is 3 loops (0–100 km = 3 laps).
+ * Loop length = raceDistanceKm/3; prologue (raceKm <= raceStartKm) stays at track start.
+ */
+export function raceKmToTrackKmThreeLoops(raceKm, trackLengthKm, raceStartKm = 0, raceDistanceKm = 100.12) {
+  if (raceKm <= raceStartKm) return 0;
+  if (raceKm >= raceDistanceKm) return trackLengthKm;
+  const loopLengthRaceKm = raceDistanceKm / 3;
+  const raceKmInLoop = ((raceKm % loopLengthRaceKm) + loopLengthRaceKm) % loopLengthRaceKm;
+  return (raceKmInLoop / loopLengthRaceKm) * trackLengthKm;
 }
 
 /**
