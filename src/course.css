@@ -26,17 +26,24 @@
   background: var(--surface);
 }
 
-/* Top layer: iOS-style sheet */
+/* Top layer: iOS-style sheet — height set by JS for swipe/snap */
 .course-sheet {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 10;
-  max-height: 52vh;
+  height: var(--sheet-height, 35vh);
   min-height: 200px;
   padding: 0 0 env(safe-area-inset-bottom, 0);
   pointer-events: none;
+  transition: height 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.course-sheet.dragging {
+  transition: none;
 }
 
 .course-sheet > * {
@@ -47,21 +54,34 @@
   background: var(--surface);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
-  max-height: calc(52vh - env(safe-area-inset-bottom, 0px));
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 0 1rem 1.5rem;
   padding-top: 0.5rem;
 }
 
+.course-sheet-drag-area {
+  flex-shrink: 0;
+  padding: 8px 0 12px;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.course-sheet-drag-area:active {
+  cursor: grabbing;
+}
+
 .course-sheet-handle {
   width: 36px;
   height: 4px;
-  margin: 8px auto 12px;
+  margin: 0 auto;
   background: var(--muted);
   opacity: 0.6;
   border-radius: 2px;
-  flex-shrink: 0;
 }
 
 .course-sheet-header {

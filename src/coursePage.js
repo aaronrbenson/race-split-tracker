@@ -14,7 +14,105 @@ function setStatus(msg) {
   getEl('course-status').textContent = msg;
 }
 
+/** Sheet snap points as fraction of viewport height (0–1). */
+const SHEET_PEEK = 0.35;
+const SHEET_HALF = 0.5;
+const SHEET_FULL = 1;
+
+function initSheetDrag() {
+  const sheet = getEl('course-sheet');
+  const dragArea = getEl('course-sheet-drag');
+
+  function getSafeBottom() {
+    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)')) || 0;
+  }
+
+  function getHeights() {
+    const vh = window.innerHeight;
+    const safe = getSafeBottom();
+    return {
+      peek: Math.max(200, vh * SHEET_PEEK),
+      half: vh * SHEET_HALF,
+      full: vh - safe,
+    };
+  }
+
+  function setSheetHeight(px) {
+    sheet.style.height = `${px}px`;
+    sheet.style.setProperty('--sheet-height', `${px}px`);
+  }
+
+  function snapToNearest(px) {
+    const { peek, half, full } = getHeights();
+    const midPeekHalf = (peek + half) / 2;
+    const midHalfFull = (half + full) / 2;
+    let snap;
+    if (px < midPeekHalf) snap = peek;
+    else if (px < midHalfFull) snap = half;
+    else snap = full;
+    setSheetHeight(snap);
+    sheet.classList.remove('dragging');
+  }
+
+  let startY = 0;
+  let startHeight = 0;
+
+  function onStart(clientY) {
+    const heights = getHeights();
+    startY = clientY;
+    startHeight = sheet.offsetHeight;
+    sheet.classList.add('dragging');
+  }
+
+  function onMove(clientY) {
+    const heights = getHeights();
+    const deltaY = startY - clientY;
+    const next = Math.round(startHeight + deltaY);
+    const clamped = Math.max(heights.peek, Math.min(heights.full, next));
+    setSheetHeight(clamped);
+  }
+
+  function onEnd() {
+    if (!sheet.classList.contains('dragging')) return;
+    snapToNearest(sheet.offsetHeight);
+  }
+
+  dragArea.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault();
+    onStart(e.touches[0].clientY);
+  }, { passive: false });
+
+  dragArea.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault();
+    onMove(e.touches[0].clientY);
+  }, { passive: false });
+
+  dragArea.addEventListener('touchend', onEnd);
+  dragArea.addEventListener('touchcancel', onEnd);
+
+  dragArea.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    onStart(e.clientY);
+    const onMouseMove = (e2) => onMove(e2.clientY);
+    const onMouseUp = () => {
+      onEnd();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
+  // Set initial height to peek (in px) so it matches snap points
+  setSheetHeight(getHeights().peek);
+}
+
 function init() {
+  initSheetDrag();
+
   const mapContainer = getEl('map-container');
   const gpxFile = getEl('gpx-file');
   const loadDefaultBtn = getEl('load-default-gpx');
