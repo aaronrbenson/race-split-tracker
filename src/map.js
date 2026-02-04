@@ -38,6 +38,17 @@ export function initMap(container, options = {}) {
   const map = L.map(container).setView([30.615, -95.534], 12);
   centerMapForSheet(map);
 
+  /* Ensure tiles load correctly: invalidateSize after layout (handles timing/resize issues) */
+  map.whenReady(() => {
+    requestAnimationFrame(() => {
+      map.invalidateSize();
+    });
+  });
+  const resizeObs = typeof ResizeObserver !== 'undefined'
+    ? new ResizeObserver(() => map.invalidateSize())
+    : null;
+  if (resizeObs && container) resizeObs.observe(container);
+
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
@@ -46,8 +57,26 @@ export function initMap(container, options = {}) {
 
   let polyline = null;
   let runnerMarker = null;
+  let startFinishMarker = null;
+  let aidStationMarkers = [];
   let currentTrack = null;
   let currentRaceStartKm = raceStartKm;
+
+  /** First-lap aid station km for Gate, Nature Center, Dam Nation (Tyler's = start/finish). */
+  const FIRST_LAP_AID_KM = [
+    { name: 'Gate', km: 9.66 },
+    { name: 'Nature Center', km: 18.19 },
+    { name: 'Dam Nation', km: 26.23 },
+  ];
+
+  function poiIcon(emoji) {
+    return L.divIcon({
+      className: 'course-poi-marker',
+      html: `<span aria-hidden="true">${emoji}</span>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+  }
 
   function runnerIcon(bearing) {
     /* Runner emoji faces right (east); 0 = north so offset -90 so bearing 90 = 0 rotation */
@@ -63,12 +92,43 @@ export function initMap(container, options = {}) {
   function setTrack(track) {
     currentTrack = track;
     if (polyline) map.removeLayer(polyline);
+    polyline = null;
+    if (startFinishMarker) map.removeLayer(startFinishMarker);
+    startFinishMarker = null;
+    aidStationMarkers.forEach((m) => map.removeLayer(m));
+    aidStationMarkers = [];
     if (!track || track.points.length === 0) return;
     const latLngs = track.points.map((p) => [p.lat, p.lon]);
     polyline = L.polyline(latLngs, { color: '#58a6ff', weight: 4, opacity: 0.9 }).addTo(map);
-    map.fitBounds(track.bounds, { padding: [24, 24], maxZoom: 14 });
+
+    /* Start/finish marker at loop start */
+    const start = track.points[0];
+    if (start) {
+      startFinishMarker = L.marker([start.lat, start.lon], { icon: poiIcon('🏁') }).addTo(map);
+      startFinishMarker.bindTooltip('Start / Finish', { permanent: false, direction: 'top', offset: [0, -12] });
+    }
+
+    /* Aid station markers from first-lap distances */
+    const trackLen = track.trackLengthKm;
+    const loopLen = raceDistanceKm / 3;
+    for (const { name, km } of FIRST_LAP_AID_KM) {
+      const trackKm = (km / loopLen) * trackLen;
+      const pos = getPositionAtDistance(track.points, trackKm);
+      if (pos) {
+        const m = L.marker([pos.lat, pos.lon], { icon: poiIcon('⛺') }).addTo(map);
+        m.bindTooltip(name, { permanent: false, direction: 'top', offset: [0, -12] });
+        aidStationMarkers.push(m);
+      }
+    }
+
+    map.invalidateSize();
+    const sheetH = getSheetHeightPx();
+    map.fitBounds(track.bounds, {
+      paddingTopLeft: [24, 24],
+      paddingBottomRight: [24, sheetH],
+      maxZoom: 14,
+    });
     centerMapForSheet(map);
-    // Always re-place runner when track loads (in case refresh() ran before track was ready)
     setRunnerKm(lastRunnerKm);
   }
 
