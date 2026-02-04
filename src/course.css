@@ -209,23 +209,32 @@ body.course-body #app,
 .course-aid-marker {
   background: none !important;
   border: none !important;
+  overflow: visible !important;
+}
+
+.course-aid-marker > div {
+  overflow: visible !important;
 }
 
 .course-aid-label-wrap {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px 4px 6px;
-  background: rgba(21, 29, 40, 0.92);
+  gap: 6px;
+  padding: 6px 12px 6px 8px;
+  background: rgba(21, 29, 40, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   white-space: nowrap;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .course-aid-emoji {
   font-size: 1rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .course-aid-label {

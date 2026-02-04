@@ -87,8 +87,8 @@ export function initMap(container, options = {}) {
           <span class="course-aid-label">${name}</span>
         </div>
       `,
-      iconSize: [80, 36],
-      iconAnchor: [40, 36],
+      iconSize: [160, 44],
+      iconAnchor: [80, 44],
     });
   }
 
@@ -124,11 +124,11 @@ export function initMap(container, options = {}) {
           html: `
             <div class="course-aid-label-wrap">
               <span class="course-aid-emoji" aria-hidden="true">🏁</span>
-              <span class="course-aid-label">Start / Finish</span>
+              <span class="course-aid-label">Tylers</span>
             </div>
           `,
-          iconSize: [100, 36],
-          iconAnchor: [50, 36],
+          iconSize: [100, 44],
+          iconAnchor: [50, 44],
         }),
       }).addTo(map);
     }
