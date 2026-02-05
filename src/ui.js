@@ -424,11 +424,11 @@ function renderHowsHeDoing(container, lastSplit, etas, planDeltaAtLastSplit, isF
 
 const LAST_NATURE_CENTER_KM = 84.06;
 
-/** Section label for aid station by km (Prologue, Lap 1, Lap 2, Lap 3). Aligned with track-derived km. */
+/** Section label for aid station by km (Prologue, Lap 1, Lap 2, Lap 3). Tyler's Prologue (3.5) under Lap 1; Tyler's Lap 2 done (~70) under Lap 3. */
 function getEtaSectionLabel(km) {
-  if (km <= 3.5) return 'Prologue';
+  if (km < 3.5) return 'Prologue';
   if (km <= 36.87) return 'Lap 1';
-  if (km <= 70.25) return 'Lap 2';
+  if (km < 67) return 'Lap 2';
   return 'Lap 3';
 }
 
@@ -448,7 +448,7 @@ function renderETAs(container, etas, lastSplitKm) {
       : '';
     const rowLi = `<li class="${classes}">
       <div class="eta-row-top">
-        <span>${(e.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim()} <span class="km">${e.km.toFixed(1)} km</span></span>
+        <span>${(e.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim()}${e.km > 0 ? ` <span class="km">${e.km.toFixed(1)} km</span>` : ''}</span>
         <span class="eta-cell"><span class="eta-time">${e.eta}</span></span>
       </div>
       ${pacerBlock}
