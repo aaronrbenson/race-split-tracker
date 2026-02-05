@@ -258,7 +258,7 @@ body {
   padding: 1rem;
   background: var(--card-bg);
   border-radius: var(--card-radius);
-  text-align: center;
+  text-align: left;
 }
 
 .hows-he-doing-empty {
@@ -279,7 +279,7 @@ body {
 .hows-he-doing-card {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.35rem;
 }
 
@@ -368,11 +368,11 @@ body {
 }
 
 .progress-station.progress-next .progress-time {
-  color: var(--accent);
+  color: var(--success);
 }
 
 .progress-station.progress-next .progress-time.progress-time-ahead {
-  color: #58a6ff;
+  color: var(--success);
 }
 
 .progress-station.progress-next .progress-time.progress-time-on {
