@@ -495,7 +495,7 @@ function renderCrewTips(container) {
       <li>Weather: Starts cool (45°F), peaks ~75°F around 2–3 PM, cools to 55°F by finish.</li>
       <li>Lap 4 will be slow — that's the plan. He's never run past 50K. Expect him to take his time.</li>
       <li>If he's late: Don't panic. Use the "Window" column times as your outer window; estimated arrivals above update with current pace.</li>
-      <li><strong>Race strategy:</strong> Aaron is running a conservative, smart race — finish feeling strong, not a fast time. If he's "slower than expected" at Tyler's in the first laps, that's good; he's saving energy for the unknown miles ahead. Trust the plan!</li>
+      <li><strong>Race strategy:</strong> Aaron is running a conservative, smart race for his first 100k. His main goal is to finish, not get a fast time. If he's "slower than expected" at Tyler's in the first laps, that's good; he's saving energy for the unknown miles ahead. Trust the plan!</li>
     </ul>
   `;
 }
