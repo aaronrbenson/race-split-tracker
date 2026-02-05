@@ -1,6 +1,7 @@
-import { AID_STATIONS_KM, RACE_DISTANCE_KM } from './data.js';
+import { RACE_DISTANCE_KM } from './data.js';
 import { computeETAs } from './eta.js';
 import { fetchRunnerInfo } from './edsFetcher.js';
+import { isTestModeActive, getTestRunnerState, startTestMode } from './testMode.js';
 
 const DEFAULT_RESULTS_URL = 'http://edsresults.com/2026rr100/';
 const DEFAULT_BIB = 'TBD';
@@ -366,6 +367,19 @@ function renderCrewTips(container) {
 }
 
 async function getRunnerData() {
+  if (isTestModeActive()) {
+    const state = getTestRunnerState();
+    if (state) {
+      return Promise.resolve({
+        runner: {
+          splits: [{ km: state.km, clockTime: state.clockTime }],
+          totalRaceTime: state.totalRaceTime ?? null,
+        },
+        fallback: false,
+        testModeActive: true,
+      });
+    }
+  }
   const admin = getAdminOverride();
   if (admin) {
     return Promise.resolve({
@@ -392,13 +406,13 @@ async function getRunnerData() {
 }
 
 function refresh() {
-  getRunnerData().then(async ({ runner, fallback, adminActive, adminKm, adminTime, noBib }) => {
+  getRunnerData().then(async ({ runner, fallback, adminActive, adminKm, adminTime, noBib, testModeActive }) => {
     let splits = (runner.splits || []).map((s) => ({
       km: s.km,
       clockTime: s.clockTime,
       splitId: s.splitId,
     }));
-    if (!adminActive) {
+    if (!adminActive && !testModeActive) {
       const bib = (getConfig().bib || '').trim();
       if (bib && bib !== 'TBD') {
         const checkin = await fetchFieldCheckin(bib);
@@ -407,7 +421,7 @@ function refresh() {
         }
       }
     }
-    const { lastSplit, etas, planDeltaAtLastSplit } = computeETAs(splits);
+    const { lastSplit, etas, planDeltaAtLastSplit } = computeETAs(splits, aidStations);
     renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null);
     renderLastSplit(document.getElementById('last-split'), lastSplit);
     renderProgressLine(document.getElementById('progress-line'), lastSplit, etas);
@@ -415,7 +429,13 @@ function refresh() {
     renderETAs(document.getElementById('eta-section'), etas, lastSplit?.km ?? null);
     const msgEl = document.getElementById('live-fallback-msg');
     if (msgEl) {
-      if (adminActive) msgEl.textContent = `Showing test position: ${adminKm.toFixed(1)} km at ${adminTime}`;
+      if (testModeActive) {
+        const state = getTestRunnerState();
+        const scenarioLabel = state?.scenario ? ` (scenario ${state.scenario})` : '';
+        msgEl.textContent = state?.isFinished
+          ? `Test mode${scenarioLabel} — finished.`
+          : `Test mode${scenarioLabel} — mock runner in progress.`;
+      } else if (adminActive) msgEl.textContent = `Showing test position: ${adminKm.toFixed(1)} km at ${adminTime}`;
       else if (lastSplit?.label === 'Field check-in') msgEl.textContent = 'Latest position from runner check-in.';
       else if (fallback && !noBib) msgEl.textContent = 'Could not load live results.';
       else if (fallback && noBib) msgEl.textContent = '';
@@ -425,15 +445,20 @@ function refresh() {
   });
 }
 
+/** Aid stations from pacing plan, set by init(). */
+let aidStations = [];
+
 /**
  * @param {Object} [options] - optional
+ * @param {Array<{ name: string, km: number, target: string, crewAccess: boolean }>} [options.aidStations] - pacing plan aid stations (required)
  * @param {(arg: { lastSplit: { km: number } | null }) => void} [options.onRunnerUpdate] - called after each refresh with latest split
  */
 export function init(options = {}) {
+  aidStations = options.aidStations ?? aidStations;
   if (options.onRunnerUpdate) window.__rockyOnRunnerUpdate = options.onRunnerUpdate;
 
   // Render dynamic sections immediately with default/empty data so they are visible before refresh() resolves
-  const { etas: defaultEtas } = computeETAs([]);
+  const { etas: defaultEtas } = computeETAs([], aidStations);
   renderRaceProgress(document.getElementById('race-progress'), null, null);
   renderLastSplit(document.getElementById('last-split'), null);
   renderProgressLine(document.getElementById('progress-line'), null, defaultEtas);
@@ -449,4 +474,9 @@ export function init(options = {}) {
   if (sheetInner) sheetInner.scrollTop = 0;
 
   refresh();
+
+  const testParam = new URLSearchParams(location.search).get('test');
+  if (['1', '2', '3', '4'].includes(testParam)) {
+    startTestMode(parseInt(testParam, 10), refresh, aidStations);
+  }
 }
