@@ -55,7 +55,6 @@ export function initMap(container, options = {}) {
   const numLoops = options.numLoops ?? 3;
   const firstLapAidKm = options.firstLapAidKm ?? DEFAULT_FIRST_LAP_AID_KM;
 
-  /* Center on Rocky Raccoon / Huntsville State Park area */
   const map = L.map(container).setView([30.615, -95.534], 12);
   centerMapForSheet(map);
 

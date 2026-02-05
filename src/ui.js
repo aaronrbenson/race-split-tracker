@@ -228,7 +228,7 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
         <span class="race-progress-runner race-progress-runner-anim" style="left: 0" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>
         ${secondRunner}
       </div>
-      <span class="race-progress-emoji" aria-hidden="true">🎯</span>
+      <span class="race-progress-emoji" aria-hidden="true">💯</span>
     </div>
     <div class="race-progress-stats">
       <p class="race-progress-total">Time: ${totalDisplay}</p>
@@ -312,7 +312,7 @@ function renderProgressLine(container, lastSplit, etas) {
   container.innerHTML = `
     <div class="progress-line-inner">
       <div class="progress-station-wrap progress-next-wrap">
-        <div class="progress-station-label">Next Aid Station</div>
+        <div class="progress-station-label">Estimated arrival</div>
         <div class="progress-station progress-next">
           <span class="progress-time ${nextTimeClass}">${nextTime}</span>
           <span class="progress-name">${nextName}</span>
@@ -461,15 +461,6 @@ function renderETAs(container, etas, lastSplitKm) {
 function normalizeTimeInput(str) {
   const s = (str || '').trim().replace(/\s*([ap]m)$/i, (_, m) => ' ' + m.toUpperCase());
   return s;
-}
-
-function renderQuickRef(container) {
-  if (!container) return;
-  container.innerHTML = `
-    <h2>Quick reference</h2>
-    <p>You can see Aaron at: <strong>Tyler's Last Resort (Start/Finish area)</strong> — every lap.</p>
-    <p>Target finish: 9:30 PM (window 8:30–10:30 PM, ~14.5–15.5 hours). Estimated arrivals above update with current pace.</p>
-  `;
 }
 
 function renderWhatToHave(container) {
@@ -622,7 +613,6 @@ export function init(options = {}) {
   renderHowsHeDoing(document.getElementById('hows-he-doing'), null, defaultEtas, null, false);
   renderETAs(document.getElementById('eta-section'), defaultEtas, null);
 
-  renderQuickRef(document.getElementById('quick-ref'));
   renderWhatToHave(document.getElementById('what-to-have'));
   renderCrewTips(document.getElementById('crew-tips'));
 
