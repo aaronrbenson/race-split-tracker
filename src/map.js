@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getPositionAtDistance, getDistanceAlongTrack, raceKmToTrackKm, raceKmToTrackKmThreeLoops, PROLOGUE_OUT_KM, PROLOGUE_TOTAL_KM } from './gpx.js';
+import { getPositionAtDistance, getDistanceAlongTrack, raceKmToTrackKm, raceKmToTrackKmThreeLoops, getTrackSegmentPoints, getLapStartTrackKmForRaceKm, PROLOGUE_OUT_KM, PROLOGUE_TOTAL_KM } from './gpx.js';
 
 /** Default race distance (km) for scaling. */
 const DEFAULT_RACE_KM = 100.12;
@@ -83,6 +83,7 @@ export function initMap(container, options = {}) {
   }).addTo(map);
 
   let polyline = null;
+  let completedPolyline = null;
   let runnerMarker = null;
   let aidStationMarkers = [];
   let currentTrack = null;
@@ -133,11 +134,15 @@ export function initMap(container, options = {}) {
     currentTrack = track;
     if (polyline) map.removeLayer(polyline);
     polyline = null;
+    if (completedPolyline) {
+      map.removeLayer(completedPolyline);
+      completedPolyline = null;
+    }
     aidStationMarkers.forEach((m) => map.removeLayer(m));
     aidStationMarkers = [];
     if (!track || track.points.length === 0) return;
     const latLngs = track.points.map((p) => [p.lat, p.lon]);
-    polyline = L.polyline(latLngs, { color: '#58a6ff', weight: 4, opacity: 0.9 }).addTo(map);
+    polyline = L.polyline(latLngs, { color: '#a0c8ff', weight: 4, opacity: 0.7 }).addTo(map);
 
     const aidDebug = new URLSearchParams(location.search).get('aidDebug') === '1';
     const trackLen = track.trackLengthKm;
@@ -199,6 +204,7 @@ export function initMap(container, options = {}) {
     if (!currentTrack || currentTrack.points.length === 0) return;
     const effectiveKm = km == null ? 0 : km;
     let pos;
+    let currentTrackKm = 0;
     if (effectiveKm < 0.5 && TYLERS_LATLON) {
       const tylersBearing = getPositionAtDistance(currentTrack.points, AID_TRACK_KM.Tylers ?? 0.51);
       pos = {
@@ -206,17 +212,31 @@ export function initMap(container, options = {}) {
         lon: TYLERS_LATLON.lon,
         bearing: tylersBearing?.bearing ?? 90,
       };
+      currentTrackKm = AID_TRACK_KM.Tylers ?? 0.51;
     } else {
-      const trackKm = numLoops === 3
+      currentTrackKm = numLoops === 3
         ? raceKmToTrackKmThreeLoops(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm)
         : raceKmToTrackKm(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm);
-      pos = getPositionAtDistance(currentTrack.points, trackKm);
+      pos = getPositionAtDistance(currentTrack.points, currentTrackKm);
     }
     if (!pos) return;
     const onPrologueReturn = effectiveKm > PROLOGUE_OUT_KM && effectiveKm <= PROLOGUE_TOTAL_KM;
     const bearing = onPrologueReturn ? (pos.bearing + 180) % 360 : pos.bearing;
     const icon = runnerIcon(bearing);
     runnerMarker = L.marker([pos.lat, pos.lon], { icon }).addTo(map);
+
+    if (completedPolyline) {
+      map.removeLayer(completedPolyline);
+      completedPolyline = null;
+    }
+    if (numLoops === 3) {
+      const lapStartTrackKm = getLapStartTrackKmForRaceKm(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm);
+      const segmentPoints = getTrackSegmentPoints(currentTrack.points, lapStartTrackKm, currentTrackKm);
+      if (segmentPoints.length >= 2) {
+        const segmentLatLngs = segmentPoints.map((p) => [p.lat, p.lon]);
+        completedPolyline = L.polyline(segmentLatLngs, { color: '#2563eb', weight: 5, opacity: 0.95 }).addTo(map);
+      }
+    }
   }
 
   function setRaceStartKm(km) {

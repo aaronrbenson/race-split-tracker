@@ -158,6 +158,61 @@ export function getDistanceAlongTrack(track, lat, lon) {
 }
 
 /**
+ * Get lat/lon points for a track segment between two distances (km).
+ * Interpolates exact positions at startKm and endKm so the segment aligns with runner position.
+ * @param {{ lat: number, lon: number, cumulKm: number }[]} track
+ * @param {number} startKm - start of segment (track km)
+ * @param {number} endKm - end of segment (track km)
+ * @returns {{ lat: number, lon: number }[]} points for the segment (empty if startKm >= endKm or fewer than 2 points)
+ */
+export function getTrackSegmentPoints(track, startKm, endKm) {
+  if (!track || track.length === 0 || startKm >= endKm) return [];
+  const total = track[track.length - 1].cumulKm;
+  if (total <= 0) return [];
+  const startClamped = Math.max(0, Math.min(startKm, total));
+  const endClamped = Math.max(0, Math.min(endKm, total));
+  if (startClamped >= endClamped) return [];
+
+  const startPos = getPositionAtDistance(track, startClamped);
+  const endPos = getPositionAtDistance(track, endClamped);
+  if (!startPos || !endPos) return [];
+
+  const points = [];
+  points.push({ lat: startPos.lat, lon: startPos.lon });
+
+  for (let i = 0; i < track.length; i++) {
+    const p = track[i];
+    if (p.cumulKm > startClamped && p.cumulKm < endClamped) {
+      points.push({ lat: p.lat, lon: p.lon });
+    }
+  }
+
+  points.push({ lat: endPos.lat, lon: endPos.lon });
+  return points.length >= 2 ? points : [];
+}
+
+/**
+ * Lap-start track km for the current lap (for drawing "completed" segment).
+ * Prologue / join: 0. Lap 0: prologueTrackKm. Laps 1 and 2: 0.
+ * @param {number} raceKm
+ * @param {number} trackLengthKm
+ * @param {number} raceStartKm
+ * @param {number} raceDistanceKm
+ * @returns {number} track km at which the current lap started
+ */
+export function getLapStartTrackKmForRaceKm(raceKm, trackLengthKm, raceStartKm = 3.5, raceDistanceKm = 100.12) {
+  if (raceKm <= 0 || raceKm >= raceDistanceKm) return 0;
+  const loopLengthRaceKm = raceDistanceKm / 3;
+  if (raceKm <= raceStartKm) return 0;
+  const raceKmIntoLoops = raceKm - raceStartKm;
+  const lapIndex = Math.floor(raceKmIntoLoops / loopLengthRaceKm);
+  if (lapIndex === 0) {
+    return Math.min(raceStartKm - PROLOGUE_TOTAL_KM, trackLengthKm);
+  }
+  return 0;
+}
+
+/**
  * Map race distance (km) to track distance (km) when track may not include prologue.
  * - raceStartKm: race km at which the track starts (e.g. 3.5 if prologue is missing)
  * - raceDistanceKm: total race distance (e.g. 100.12)
