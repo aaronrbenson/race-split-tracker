@@ -689,6 +689,9 @@ export function init(options = {}) {
   const sheetInner = document.querySelector('.course-sheet-inner');
   if (sheetInner) sheetInner.scrollTop = 0;
 
+  const refreshBtn = document.getElementById('header-refresh-btn');
+  if (refreshBtn) refreshBtn.addEventListener('click', () => refresh());
+
   const testParam = new URLSearchParams(location.search).get('test');
   if (testParam === 'finish' || testParam === '5') {
     startTestMode('finish', refresh, aidStations);

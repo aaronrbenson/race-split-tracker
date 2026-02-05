@@ -35,15 +35,56 @@ body {
 }
 
 .header {
-  text-align: center;
+  position: relative;
   margin-bottom: 1.5rem;
+  padding-right: 3.25rem;
+}
+
+.header-title-wrap {
+  min-width: 0;
+  text-align: left;
+}
+
+.header-refresh-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header-refresh-btn:hover {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.header-refresh-btn:active {
+  transform: scale(0.96);
+}
+
+.header-refresh-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .header h1 {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  padding-top: 20px;
+  padding-top: 10px;
 }
 
 .subtitle {
