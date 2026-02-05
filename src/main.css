@@ -8,6 +8,7 @@
   --accent: #58a6ff;
   --success: #3fb950;
   --warning: #d29922;
+  --danger: #f85149;
   --radius: 8px;
   --card-radius: 10px;
   --font: system-ui, -apple-system, sans-serif;
@@ -152,11 +153,29 @@ body {
   padding: 0.5rem 0;
 }
 
+.race-progress-trophy-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  margin-bottom: 0.5rem;
+}
+
 .race-progress-trophy {
   font-size: 3rem;
   line-height: 1;
   display: block;
-  margin-bottom: 0.5rem;
+}
+
+.race-progress-trophy-100 {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
 }
 
 .race-progress-celebration-title {
@@ -194,6 +213,14 @@ body {
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1rem;
+}
+
+.last-split-source,
+.last-split-pace {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .last-split .label,
@@ -272,14 +299,20 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0;
+  --progress-station-bg: rgba(0, 0, 0, 0.2);
+}
+
+.progress-station-wrap.progress-next-wrap {
+  max-width: none;
+  width: 100%;
 }
 
 .progress-station-label {
   width: 100%;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius) var(--radius) 0 0;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  background: var(--progress-station-bg);
+  border-bottom: 1px solid var(--card-bg);
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -295,7 +328,7 @@ body {
   gap: 0.15rem;
   padding: 0.5rem 0.6rem;
   border-radius: 0 0 var(--radius) var(--radius);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--progress-station-bg);
   text-align: center;
 }
 
@@ -325,6 +358,22 @@ body {
   color: var(--accent);
 }
 
+.progress-station.progress-next .progress-time.progress-time-ahead {
+  color: #58a6ff;
+}
+
+.progress-station.progress-next .progress-time.progress-time-on {
+  color: var(--success);
+}
+
+.progress-station.progress-next .progress-time.progress-time-behind {
+  color: var(--warning);
+}
+
+.progress-station.progress-next .progress-time.progress-time-very-behind {
+  color: var(--danger);
+}
+
 .progress-next-pacer-note {
   width: 100%;
   text-align: center;
@@ -352,7 +401,7 @@ body {
 }
 
 .progress-runner {
-  font-size: 4rem;
+  font-size: 3rem;
   flex-shrink: 0;
   display: inline-block;
   transform: scaleX(-1);
@@ -962,16 +1011,32 @@ th {
   margin-bottom: 0.75rem;
 }
 
+.course-sheet-finished .race-progress-trophy-wrap {
+  margin-bottom: 0.75rem;
+  transform-origin: center center;
+  animation: finished-pulse 1.5s ease-in-out infinite;
+}
+
 .course-sheet-finished .race-progress-trophy {
   font-size: 4rem;
-  margin-bottom: 0.75rem;
   filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.4));
   animation: finished-glow 2s ease-in-out infinite alternate;
+}
+
+.course-sheet-finished .race-progress-trophy-100 {
+  font-size: 3.25rem;
+  color: #f0e6c8;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(201, 162, 39, 0.3);
 }
 
 @keyframes finished-glow {
   from { filter: drop-shadow(0 0 16px rgba(201, 162, 39, 0.3)); }
   to { filter: drop-shadow(0 0 24px rgba(201, 162, 39, 0.5)); }
+}
+
+@keyframes finished-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
 .course-sheet-finished .race-progress-celebration-title {

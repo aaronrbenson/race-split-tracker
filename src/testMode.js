@@ -122,7 +122,22 @@ export function getTestRunnerState() {
 
 export function startTestMode(scenarioNum, onUpdate, stations = []) {
   if (active) return;
-  const s = parseInt(scenarioNum, 10);
+  const s = scenarioNum === 'finish' || scenarioNum === 5 ? 5 : parseInt(scenarioNum, 10);
+  if (s === 5) {
+    active = true;
+    scenario = 5;
+    aidStationsRef = stations;
+    const finishMinutes = RACE_START_MINUTES + 14 * 60 + 30;
+    lastState = {
+      km: RACE_DISTANCE_KM,
+      clockTime: formatMinutesToClock(finishMinutes),
+      totalRaceTime: '14:30:00',
+      isFinished: true,
+      scenario: 5,
+    };
+    onUpdate();
+    return;
+  }
   if (s < 1 || s > 4) return;
   active = true;
   scenario = s;

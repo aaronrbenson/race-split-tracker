@@ -59,7 +59,7 @@ body.course-body #app,
   right: 0;
   bottom: 0;
   z-index: 10;
-  height: var(--sheet-height, 35vh);
+  height: var(--sheet-height, 67vh);
   min-height: 200px;
   padding: 0 0 env(safe-area-inset-bottom, 0);
   pointer-events: none;

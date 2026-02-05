@@ -129,6 +129,58 @@ function setConfig({ resultsUrl, bib }) {
 
 const RACE_START_MINUTES = 7 * 60; // 7:00 AM
 
+/** Shared status thresholds (minutes behind plan). Used for both next aid station color and How's he doing. */
+const STATUS = {
+  AHEAD: 'ahead',        // delta < -15
+  ON: 'on',              // -15 <= delta <= 15
+  BEHIND: 'behind',      // 15 < delta <= 60  (yellow)
+  VERY_BEHIND: 'very',   // 60 < delta <= 120 (red)
+  CATASTROPHIC: 'cat',   // delta > 120
+  STALE: 'stale',        // no update in extreme time
+  UNKNOWN: 'unknown',    // no delta data
+};
+
+/** Minutes since last split before we consider data "stale". */
+const STALE_THRESHOLD_MINUTES = 90;
+
+function getStatusBand(delta) {
+  if (delta == null || Number.isNaN(delta)) return STATUS.UNKNOWN;
+  if (delta < -15) return STATUS.AHEAD;
+  if (delta <= 15) return STATUS.ON;
+  if (delta <= 60) return STATUS.BEHIND;
+  if (delta <= 120) return STATUS.VERY_BEHIND;
+  return STATUS.CATASTROPHIC;
+}
+
+/** CSS class for next aid station time, aligned with status band. */
+function getProgressTimeClass(statusBand) {
+  switch (statusBand) {
+    case STATUS.AHEAD: return 'progress-time-ahead';
+    case STATUS.ON: return 'progress-time-on';
+    case STATUS.BEHIND: return 'progress-time-behind';
+    case STATUS.VERY_BEHIND:
+    case STATUS.CATASTROPHIC: return 'progress-time-very-behind';
+    default: return '';
+  }
+}
+
+/** Pick one message from array using km for stable variety (doesn't flip every refresh). */
+function pickMessage(messages, km) {
+  if (!messages || messages.length === 0) return '';
+  const idx = Math.floor((km ?? 0) * 0.5) % messages.length;
+  return messages[idx];
+}
+
+function isDataStale(lastSplit) {
+  if (!lastSplit?.clockTime) return false;
+  const nowMin = parseClockToMinutes(getCurrentClockTime());
+  const lastMin = parseClockToMinutes(lastSplit.clockTime);
+  if (nowMin == null || lastMin == null) return false;
+  let minutesSince = nowMin - lastMin;
+  if (minutesSince < 0) minutesSince += 24 * 60; // wrap midnight
+  return minutesSince > STALE_THRESHOLD_MINUTES;
+}
+
 function renderRaceProgress(container, lastSplit, totalRaceTime) {
   if (!container) return;
   const progressKm = lastSplit?.km ?? 0;
@@ -148,13 +200,15 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
 
   if (isFinished) {
     container.innerHTML = `
-      <p class="label">Overall Status</p>
+      <p class="label">FINISHER</p>
       <div class="race-progress-celebration">
-        <span class="race-progress-trophy" aria-hidden="true">🏆</span>
+        <span class="race-progress-trophy-wrap">
+          <span class="race-progress-trophy" aria-hidden="true">🏆</span>
+          <span class="race-progress-trophy-100" aria-hidden="true">💯</span>
+        </span>
         <p class="race-progress-celebration-title">Finished!</p>
         <div class="race-progress-stats">
           <p class="race-progress-total">Official time: ${totalDisplay}</p>
-          <p class="race-progress-total">Distance: 💯</p>
         </div>
       </div>
     `;
@@ -177,7 +231,7 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
       <span class="race-progress-emoji" aria-hidden="true">🎯</span>
     </div>
     <div class="race-progress-stats">
-      <p class="race-progress-total">Running time: ${totalDisplay}</p>
+      <p class="race-progress-total">Time: ${totalDisplay}</p>
       <p class="race-progress-total">Est. distance: ${progressKm.toFixed(1)} km</p>
     </div>
   `;
@@ -191,15 +245,37 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
   });
 }
 
+/** Format pace (minutes per km) as "X:XX/km". */
+function formatPaceMinPerKm(minPerKm) {
+  if (minPerKm == null || !Number.isFinite(minPerKm) || minPerKm < 0) return null;
+  const m = Math.floor(minPerKm);
+  const s = Math.round((minPerKm % 1) * 60);
+  return `${m}:${String(s).padStart(2, '0')}/km`;
+}
+
 function renderLastSplit(container, lastSplit) {
   if (!container) return;
   if (!lastSplit) {
     container.innerHTML = '<p class="label">Last recorded split</p><p>No split data yet.</p>';
     return;
   }
+  let avgPaceHtml = '';
+  const km = lastSplit.km ?? 0;
+  const lastMin = parseClockToMinutes(lastSplit.clockTime);
+  if (lastMin != null && km > 0) {
+    const elapsed = lastMin - RACE_START_MINUTES;
+    if (elapsed >= 0) {
+      const pace = elapsed / km;
+      const paceStr = formatPaceMinPerKm(pace);
+      if (paceStr) avgPaceHtml = `<p class="last-split-pace">Avg pace: ${paceStr}</p>`;
+    }
+  }
+  const sourceText = lastSplit.source === 'checkin' ? 'via Aaron check-in' : 'via official race timer';
   container.innerHTML = `
     <p class="label">Last recorded split</p>
-    <p>${lastSplit.label} — ${lastSplit.km.toFixed(1)} km at ${lastSplit.clockTime}</p>
+    <p>${km.toFixed(1)} km at ${lastSplit.clockTime}</p>
+    <p class="last-split-source">${sourceText}</p>
+    ${avgPaceHtml}
   `;
 }
 
@@ -223,29 +299,22 @@ function getLastNextStations(lastSplitKm, etas) {
 function renderProgressLine(container, lastSplit, etas) {
   if (!container) return;
   const lastSplitKm = lastSplit?.km ?? 0;
-  const { last, next } = getLastNextStations(lastSplitKm, etas);
+  const { next } = getLastNextStations(lastSplitKm, etas);
 
-  const lastTime = last ? last.eta : '—';
-  const lastName = last ? `@ ${last.name}` : 'Start';
   const nextTime = next ? next.eta : '—';
   const nextName = next ? `@ ${next.name}` : '—';
   const nextIsLastNatureCenter = next && next.name === 'Nature Center' && next.km >= LAST_NATURE_CENTER_KM - 0.1;
   const nextPacerNote = nextIsLastNatureCenter ? '<div class="progress-next-pacer-note">Pickup Zach</div>' : '';
 
+  const statusBand = getStatusBand(next?.planDeltaMinutes);
+  const nextTimeClass = getProgressTimeClass(statusBand);
+
   container.innerHTML = `
     <div class="progress-line-inner">
-      <div class="progress-station-wrap">
-        <div class="progress-station-label">Last Aid Station</div>
-        <div class="progress-station progress-last">
-          <span class="progress-time">${lastTime}</span>
-          <span class="progress-name">${lastName}</span>
-        </div>
-      </div>
-      <span class="progress-track" aria-hidden="true"><span class="progress-runner">🏃</span></span>
-      <div class="progress-station-wrap">
+      <div class="progress-station-wrap progress-next-wrap">
         <div class="progress-station-label">Next Aid Station</div>
         <div class="progress-station progress-next">
-          <span class="progress-time">${nextTime}</span>
+          <span class="progress-time ${nextTimeClass}">${nextTime}</span>
           <span class="progress-name">${nextName}</span>
         </div>
         ${nextPacerNote}
@@ -254,28 +323,87 @@ function renderProgressLine(container, lastSplit, etas) {
   `;
 }
 
-function getHowsHeDoingState(lastSplit, planDeltaAtLastSplit) {
-  if (!lastSplit || planDeltaAtLastSplit == null) return null;
-  const delta = planDeltaAtLastSplit;
+const HOWS_HE_DOING_MESSAGES = {
+  [STATUS.AHEAD]: [
+    "He's flying! Someone tell him it's a long day.",
+    'Ahead of schedule and feeling dangerous.',
+    'Crushing it. Crew better not be napping.',
+    'Moving faster than planned. Trust the taper.',
+  ],
+  [STATUS.ON]: [
+    'Smooth sailing. Right on plan.',
+    'Locked in. Exactly where he needs to be.',
+    'On target. Nothing to see here.',
+    'Right on schedule. Keep it steady.',
+  ],
+  [STATUS.BEHIND]: [
+    "A little behind, but he's been through worse.",
+    'Slightly off pace. Totally manageable.',
+    'A few minutes back — nothing to worry about yet.',
+    'Behind schedule but still in the game.',
+  ],
+  [STATUS.VERY_BEHIND]: [
+    'Running behind. Time to prep the good snacks.',
+    'Significantly off pace. Ready the backup plan.',
+    'He could use a boost. Have the essentials ready.',
+    'Behind schedule. Stay calm, stay ready.',
+  ],
+  [STATUS.CATASTROPHIC]: [
+    "Uh oh. Break out the pizza and prayers.",
+    "Way off pace. Something's going on.",
+    "Major delay. Crew, it's time to rally.",
+    "This is a tough spot. Support mode activated.",
+  ],
+  [STATUS.STALE]: [
+    "We haven't seen an update in a while.",
+    "No recent updates. Last position may be stale.",
+    "Data is getting old. Last split was a while ago.",
+  ],
+};
+
+function getHowsHeDoingState(lastSplit, etas, planDeltaAtLastSplit, skipStaleCheck = false) {
+  if (!lastSplit) return null;
   const km = lastSplit.km ?? 0;
-  const early = km < 35;
-  if (delta < -15) {
-    return { emoji: '🚀', message: early ? 'He\'s flying! Someone tell him it\'s a long day.' : 'Ahead of schedule and feeling dangerous.' };
+
+  if (!skipStaleCheck && isDataStale(lastSplit)) {
+    const messages = HOWS_HE_DOING_MESSAGES[STATUS.STALE];
+    const base = pickMessage(messages, km);
+    const lastSeen = `${lastSplit.label ?? `${km.toFixed(1)} km`} at ${lastSplit.clockTime}`;
+    return { emoji: '⏳', message: `${base} Last seen: ${lastSeen}.`, band: STATUS.STALE };
   }
-  if (delta <= 15) return { emoji: '✅', message: 'Smooth sailing. Right on plan.' };
-  if (delta <= 60) return { emoji: '😅', message: 'A little behind, but he\'s been through worse.' };
-  if (delta <= 120) return { emoji: '⚠️', message: 'Running behind. Time to prep the good snacks.' };
-  return { emoji: '🆘', message: 'Uh oh. Break out the pizza and prayers.' };
+
+  const { next } = getLastNextStations(km, etas);
+  const statusDelta = next?.planDeltaMinutes ?? planDeltaAtLastSplit;
+  const band = getStatusBand(statusDelta);
+
+  if (band === STATUS.UNKNOWN) return null;
+
+  const early = km < 35;
+  const messages = HOWS_HE_DOING_MESSAGES[band];
+  let message = pickMessage(messages, km);
+
+  if (band === STATUS.AHEAD && early) {
+    message = HOWS_HE_DOING_MESSAGES[STATUS.AHEAD][0];
+  }
+
+  const emojiMap = {
+    [STATUS.AHEAD]: '🚀',
+    [STATUS.ON]: '✅',
+    [STATUS.BEHIND]: '😅',
+    [STATUS.VERY_BEHIND]: '⚠️',
+    [STATUS.CATASTROPHIC]: '🆘',
+  };
+  return { emoji: emojiMap[band] ?? '❓', message, band };
 }
 
-function renderHowsHeDoing(container, lastSplit, planDeltaAtLastSplit, isFinished = false) {
+function renderHowsHeDoing(container, lastSplit, etas, planDeltaAtLastSplit, isFinished = false, skipStaleCheck = false) {
   if (!container) return;
   if (isFinished) {
     container.style.display = 'none';
     return;
   }
   container.style.display = '';
-  const state = getHowsHeDoingState(lastSplit, planDeltaAtLastSplit);
+  const state = getHowsHeDoingState(lastSplit, etas, planDeltaAtLastSplit, skipStaleCheck);
   if (!state) {
     container.innerHTML = '<p class="hows-he-doing-empty">Waiting on Aaron to make his move...</p>';
     return;
@@ -454,7 +582,7 @@ function refresh() {
     renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null);
     renderLastSplit(document.getElementById('last-split'), lastSplit);
     renderProgressLine(document.getElementById('progress-line'), lastSplit, etas);
-    renderHowsHeDoing(document.getElementById('hows-he-doing'), lastSplit, planDeltaAtLastSplit, isFinished);
+    renderHowsHeDoing(document.getElementById('hows-he-doing'), lastSplit, etas, planDeltaAtLastSplit, isFinished, testModeActive);
     renderETAs(document.getElementById('eta-section'), etas, lastSplit?.km ?? null);
     const msgEl = document.getElementById('live-fallback-msg');
     if (msgEl) {
@@ -491,7 +619,7 @@ export function init(options = {}) {
   renderRaceProgress(document.getElementById('race-progress'), null, null);
   renderLastSplit(document.getElementById('last-split'), null);
   renderProgressLine(document.getElementById('progress-line'), null, defaultEtas);
-  renderHowsHeDoing(document.getElementById('hows-he-doing'), null, null, false);
+  renderHowsHeDoing(document.getElementById('hows-he-doing'), null, defaultEtas, null, false);
   renderETAs(document.getElementById('eta-section'), defaultEtas, null);
 
   renderQuickRef(document.getElementById('quick-ref'));
@@ -502,10 +630,12 @@ export function init(options = {}) {
   const sheetInner = document.querySelector('.course-sheet-inner');
   if (sheetInner) sheetInner.scrollTop = 0;
 
-  refresh();
-
   const testParam = new URLSearchParams(location.search).get('test');
-  if (['1', '2', '3', '4'].includes(testParam)) {
+  if (testParam === 'finish' || testParam === '5') {
+    startTestMode('finish', refresh, aidStations);
+  } else if (['1', '2', '3', '4'].includes(testParam)) {
     startTestMode(parseInt(testParam, 10), refresh, aidStations);
+  } else {
+    refresh();
   }
 }

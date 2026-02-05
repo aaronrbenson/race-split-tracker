@@ -5,6 +5,8 @@
 const SHEET_PEEK = 0.35;
 const SHEET_HALF = 0.5;
 const SHEET_FULL = 1;
+/** Default sheet height on load: more sheet than map (~2/3 open). */
+const SHEET_DEFAULT = 2 / 3;
 
 export function initSheetDrag() {
   const sheet = document.getElementById('course-sheet');
@@ -89,5 +91,6 @@ export function initSheetDrag() {
     document.addEventListener('mouseup', onMouseUp);
   });
 
-  setSheetHeight(getHeights().peek);
+  const { full } = getHeights();
+  setSheetHeight(Math.max(200, Math.round(full * SHEET_DEFAULT)));
 }

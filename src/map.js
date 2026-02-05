@@ -5,7 +5,7 @@ import { getPositionAtDistance, getDistanceAlongTrack, raceKmToTrackKm, raceKmTo
 /** Default race distance (km) for scaling. */
 const DEFAULT_RACE_KM = 100.12;
 
-/** Peek height fraction, match sheet.js so we can offset map center. */
+/** Fallback when sheet height not yet available (e.g. before layout). */
 const SHEET_PEEK_FRACTION = 0.35;
 
 function getSheetHeightPx() {
@@ -15,12 +15,14 @@ function getSheetHeightPx() {
 }
 
 /**
- * Pan map up so its center aligns with the visible area (above the sheet).
- * Use slightly more than half the sheet height so the map sits a bit higher on load.
+ * Pan map so the center of the view aligns with the center of the visible map area
+ * (the top strip above the sheet). When the sheet is ~2/3, that visible area is the top 1/3.
  */
 function centerMapForSheet(map) {
   const sheetH = getSheetHeightPx();
-  map.panBy([0, -sheetH * 0.6], { animate: false });
+  const containerCenterY = map.getContainer().offsetHeight / 2;
+  const visibleCenterY = (map.getContainer().offsetHeight - sheetH) / 2;
+  map.panBy([0, visibleCenterY - containerCenterY], { animate: false });
 }
 
 /** Default first-lap aid stations (chart miles along loop) if not provided. */
@@ -196,12 +198,21 @@ export function initMap(container, options = {}) {
       runnerMarker = null;
     }
     if (!currentTrack || currentTrack.points.length === 0) return;
-    // When no split data, show runner at start (0 km) so they're visible on the map
     const effectiveKm = km == null ? 0 : km;
-    const trackKm = numLoops === 3
-      ? raceKmToTrackKmThreeLoops(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm)
-      : raceKmToTrackKm(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm);
-    const pos = getPositionAtDistance(currentTrack.points, trackKm);
+    let pos;
+    if (effectiveKm < 0.5 && TYLERS_LATLON) {
+      const tylersBearing = getPositionAtDistance(currentTrack.points, AID_TRACK_KM.Tylers ?? 0.51);
+      pos = {
+        lat: TYLERS_LATLON.lat,
+        lon: TYLERS_LATLON.lon,
+        bearing: tylersBearing?.bearing ?? 90,
+      };
+    } else {
+      const trackKm = numLoops === 3
+        ? raceKmToTrackKmThreeLoops(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm)
+        : raceKmToTrackKm(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm);
+      pos = getPositionAtDistance(currentTrack.points, trackKm);
+    }
     if (!pos) return;
     const onPrologueReturn = effectiveKm > PROLOGUE_OUT_KM && effectiveKm <= PROLOGUE_TOTAL_KM;
     const bearing = onPrologueReturn ? (pos.bearing + 180) % 360 : pos.bearing;

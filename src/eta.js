@@ -52,8 +52,9 @@ export function computeETAs(splits, aidStations) {
   const lastMinutes = parseClockToMinutes(last.clockTime);
   if (lastMinutes == null) {
     const label = last.splitId === 'field' ? 'Field check-in' : `${lastKm.toFixed(1)} km`;
+    const source = last.splitId === 'field' ? 'checkin' : 'official';
     return {
-      lastSplit: { km: lastKm, clockTime: last.clockTime, label },
+      lastSplit: { km: lastKm, clockTime: last.clockTime, label, source },
       planDeltaAtLastSplit: null,
       etas: aidStations.map((s) => ({
         name: s.name,
@@ -183,11 +184,13 @@ export function computeETAs(splits, aidStations) {
     if (targetMin != null) planDeltaAtLastSplit = Math.round(lastMinutes - targetMin);
   }
 
+  const source = last.splitId === 'field' ? 'checkin' : 'official';
   return {
     lastSplit: {
       km: lastKm,
       clockTime: last.clockTime,
       label: lastSplitLabel,
+      source,
     },
     planDeltaAtLastSplit,
     etas,
