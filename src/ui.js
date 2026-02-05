@@ -137,8 +137,7 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
 
   let totalDisplay = '—';
   if (isFinished && totalRaceTime) {
-    const totalMin = parseHHMMSSToMinutes(totalRaceTime);
-    totalDisplay = totalMin != null ? formatTimeOnCourse(totalMin) : totalRaceTime;
+    totalDisplay = totalRaceTime;
   } else if (!isFinished && lastSplit?.clockTime) {
     const lastMin = parseClockToMinutes(lastSplit.clockTime);
     if (lastMin != null) {
@@ -153,7 +152,10 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
       <div class="race-progress-celebration">
         <span class="race-progress-trophy" aria-hidden="true">🏆</span>
         <p class="race-progress-celebration-title">Finished!</p>
-        <p class="race-progress-total">Result: ${totalDisplay}</p>
+        <div class="race-progress-stats">
+          <p class="race-progress-total">Official time: ${totalDisplay}</p>
+          <p class="race-progress-total">Distance: 💯</p>
+        </div>
       </div>
     `;
     return;
@@ -174,7 +176,10 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
       </div>
       <span class="race-progress-emoji" aria-hidden="true">🎯</span>
     </div>
-    <p class="race-progress-total">Running time: ${totalDisplay}</p>
+    <div class="race-progress-stats">
+      <p class="race-progress-total">Running time: ${totalDisplay}</p>
+      <p class="race-progress-total">Est. distance: ${progressKm.toFixed(1)} km</p>
+    </div>
   `;
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -224,7 +229,7 @@ function renderProgressLine(container, lastSplit, etas) {
   const lastName = last ? `@ ${last.name}` : 'Start';
   const nextTime = next ? next.eta : '—';
   const nextName = next ? `@ ${next.name}` : '—';
-  const nextIsLastNatureCenter = next && next.name === 'Nature Center' && next.km >= 82.4;
+  const nextIsLastNatureCenter = next && next.name === 'Nature Center' && next.km >= LAST_NATURE_CENTER_KM - 0.1;
   const nextPacerNote = nextIsLastNatureCenter ? '<div class="progress-next-pacer-note">Pickup Zach</div>' : '';
 
   container.innerHTML = `
@@ -263,8 +268,13 @@ function getHowsHeDoingState(lastSplit, planDeltaAtLastSplit) {
   return { emoji: '🆘', message: 'Uh oh. Break out the pizza and prayers.' };
 }
 
-function renderHowsHeDoing(container, lastSplit, planDeltaAtLastSplit) {
+function renderHowsHeDoing(container, lastSplit, planDeltaAtLastSplit, isFinished = false) {
   if (!container) return;
+  if (isFinished) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = '';
   const state = getHowsHeDoingState(lastSplit, planDeltaAtLastSplit);
   if (!state) {
     container.innerHTML = '<p class="hows-he-doing-empty">Waiting on Aaron to make his move...</p>';
@@ -279,13 +289,13 @@ function renderHowsHeDoing(container, lastSplit, planDeltaAtLastSplit) {
   `;
 }
 
-const LAST_NATURE_CENTER_KM = 82.43;
+const LAST_NATURE_CENTER_KM = 84.06;
 
-/** Section label for aid station by km (Prologue, Lap 1, Lap 2, Lap 3). */
+/** Section label for aid station by km (Prologue, Lap 1, Lap 2, Lap 3). Aligned with track-derived km. */
 function getEtaSectionLabel(km) {
-  if (km <= 3.54) return 'Prologue';
-  if (km <= 35.73) return 'Lap 1';
-  if (km <= 67.9) return 'Lap 2';
+  if (km <= 3.5) return 'Prologue';
+  if (km <= 36.87) return 'Lap 1';
+  if (km <= 70.25) return 'Lap 2';
   return 'Lap 3';
 }
 
@@ -422,10 +432,29 @@ function refresh() {
       }
     }
     const { lastSplit, etas, planDeltaAtLastSplit } = computeETAs(splits, aidStations);
+    const isFinished = (lastSplit?.km ?? 0) >= 99.5 || !!runner.totalRaceTime;
+    const sheet = document.getElementById('course-sheet');
+    if (sheet) {
+      if (isFinished) {
+        sheet.classList.add('course-sheet-finished');
+        const vh = window.innerHeight;
+        const safe = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)')) || 0;
+        sheet.style.height = `${vh - safe}px`;
+        sheet.style.setProperty('--sheet-height', `${vh - safe}px`);
+      } else {
+        const wasFinished = sheet.classList.contains('course-sheet-finished');
+        sheet.classList.remove('course-sheet-finished');
+        if (wasFinished) {
+          const peek = Math.max(200, window.innerHeight * 0.35);
+          sheet.style.height = `${peek}px`;
+          sheet.style.setProperty('--sheet-height', `${peek}px`);
+        }
+      }
+    }
     renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null);
     renderLastSplit(document.getElementById('last-split'), lastSplit);
     renderProgressLine(document.getElementById('progress-line'), lastSplit, etas);
-    renderHowsHeDoing(document.getElementById('hows-he-doing'), lastSplit, planDeltaAtLastSplit);
+    renderHowsHeDoing(document.getElementById('hows-he-doing'), lastSplit, planDeltaAtLastSplit, isFinished);
     renderETAs(document.getElementById('eta-section'), etas, lastSplit?.km ?? null);
     const msgEl = document.getElementById('live-fallback-msg');
     if (msgEl) {
@@ -462,7 +491,7 @@ export function init(options = {}) {
   renderRaceProgress(document.getElementById('race-progress'), null, null);
   renderLastSplit(document.getElementById('last-split'), null);
   renderProgressLine(document.getElementById('progress-line'), null, defaultEtas);
-  renderHowsHeDoing(document.getElementById('hows-he-doing'), null, null);
+  renderHowsHeDoing(document.getElementById('hows-he-doing'), null, null, false);
   renderETAs(document.getElementById('eta-section'), defaultEtas, null);
 
   renderQuickRef(document.getElementById('quick-ref'));

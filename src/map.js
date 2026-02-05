@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getPositionAtDistance, raceKmToTrackKm, raceKmToTrackKmThreeLoops } from './gpx.js';
+import { getPositionAtDistance, getDistanceAlongTrack, raceKmToTrackKm, raceKmToTrackKmThreeLoops, PROLOGUE_OUT_KM, PROLOGUE_TOTAL_KM } from './gpx.js';
 
 /** Default race distance (km) for scaling. */
 const DEFAULT_RACE_KM = 100.12;
@@ -23,20 +23,46 @@ function centerMapForSheet(map) {
   map.panBy([0, -sheetH * 0.6], { animate: false });
 }
 
+/** Default first-lap aid stations (chart miles along loop) if not provided. */
+const DEFAULT_FIRST_LAP_AID_KM = [
+  { name: 'Gate', mile: 6 },
+  { name: 'Nature Center', mile: 11.3 },
+  { name: 'Dam Nation', mile: 16.3 },
+];
+
+/** Corrected track km along loop (from dragged positions). Overrides mile-based placement when set. */
+const AID_TRACK_KM = {
+  Tylers: 0.51,
+  Gate: 6.3,
+  'Nature Center': 14.87,
+  'Dam Nation': 24.89,
+};
+
+/** Optional exact lat/lon for Tylers (start/finish). When set, marker is placed here instead of track-interpolated. */
+const TYLERS_LATLON = { lat: 30.61503, lon: -95.53251 };
+
 /**
  * Create and run the course map.
  * @param {HTMLElement} container - div for the map
- * @param {Object} options - { raceStartKm?: number, raceDistanceKm?: number, numLoops?: number }
+ * @param {Object} options - { raceStartKm?: number, raceDistanceKm?: number, numLoops?: number, firstLapAidKm?: Array<{ name: string, mile: number }> }
  * @returns {{ setTrack, setRunnerKm, setRaceStartKm }}
  */
 export function initMap(container, options = {}) {
   const raceStartKm = options.raceStartKm ?? 3.5;
   const raceDistanceKm = options.raceDistanceKm ?? DEFAULT_RACE_KM;
   const numLoops = options.numLoops ?? 3;
+  const firstLapAidKm = options.firstLapAidKm ?? DEFAULT_FIRST_LAP_AID_KM;
 
   /* Center on Rocky Raccoon / Huntsville State Park area */
   const map = L.map(container).setView([30.615, -95.534], 12);
   centerMapForSheet(map);
+
+  /* Label above map tiles (Leaflet panes use z-index 200–700; we use 750) */
+  const labelEl = document.createElement('span');
+  labelEl.className = 'map-surface-label';
+  labelEl.setAttribute('aria-hidden', 'true');
+  labelEl.textContent = 'Location is an estimate';
+  container.appendChild(labelEl);
 
   /* Ensure tiles load correctly: invalidateSize after layout (handles timing/resize issues) */
   map.whenReady(() => {
@@ -57,17 +83,9 @@ export function initMap(container, options = {}) {
 
   let polyline = null;
   let runnerMarker = null;
-  let startFinishMarker = null;
   let aidStationMarkers = [];
   let currentTrack = null;
   let currentRaceStartKm = raceStartKm;
-
-  /** First-lap aid station km for Gate, Nature Center, Dam Nation (Tyler's = start/finish). */
-  const FIRST_LAP_AID_KM = [
-    { name: 'Gate', km: 9.66 },
-    { name: 'Nature Center', km: 18.19 },
-    { name: 'Dam Nation', km: 26.23 },
-  ];
 
   function poiIcon(emoji) {
     return L.divIcon({
@@ -78,23 +96,30 @@ export function initMap(container, options = {}) {
     });
   }
 
-  function aidStationIcon(name) {
+  function aidStationIcon(name, emoji = '💧') {
+    const extraClass = name === 'Tylers' ? ' course-aid-start' : '';
+    /* Icon height matches compact label (padding + emoji); anchor at bottom so label sits just above point */
+    const iconH = 24;
+    const iconAnchor = name === 'Tylers' ? [40, iconH] : [80, iconH];
     return L.divIcon({
-      className: 'course-aid-marker',
+      className: 'course-aid-marker' + extraClass,
       html: `
         <div class="course-aid-label-wrap">
-          <span class="course-aid-emoji" aria-hidden="true">⛺</span>
-          <span class="course-aid-label">${name}</span>
+          <span class="course-aid-emoji" aria-hidden="true">${emoji}</span>
+          <span class="course-aid-label">${name === 'Tylers' ? "Tyler's" : name}</span>
         </div>
       `,
-      iconSize: [160, 44],
-      iconAnchor: [80, 44],
+      iconSize: [160, iconH],
+      iconAnchor,
     });
   }
 
   function runnerIcon(bearing) {
-    /* Runner emoji faces right (east); 0 = north so offset -90 so bearing 90 = 0 rotation */
-    const deg = bearing != null ? Math.round(bearing) - 90 : -90;
+    /* Runner emoji default faces left (west). Only face east or west, toward direction of travel.
+     * East = 180deg rotation, west = 0deg. Face east when bearing is in eastern semicircle (315–360, 0–135). */
+    const b = bearing != null ? bearing : 270;
+    const faceEast = b >= 315 || b < 135;
+    const deg = faceEast ? 180 : 0;
     return L.divIcon({
       className: 'course-runner-marker',
       html: `<span class="course-runner-arrow" style="transform: rotate(${deg}deg)" aria-hidden="true">🏃</span>`,
@@ -107,40 +132,47 @@ export function initMap(container, options = {}) {
     currentTrack = track;
     if (polyline) map.removeLayer(polyline);
     polyline = null;
-    if (startFinishMarker) map.removeLayer(startFinishMarker);
-    startFinishMarker = null;
     aidStationMarkers.forEach((m) => map.removeLayer(m));
     aidStationMarkers = [];
     if (!track || track.points.length === 0) return;
     const latLngs = track.points.map((p) => [p.lat, p.lon]);
     polyline = L.polyline(latLngs, { color: '#58a6ff', weight: 4, opacity: 0.9 }).addTo(map);
 
-    /* Start/finish marker at loop start */
-    const start = track.points[0];
-    if (start) {
-      startFinishMarker = L.marker([start.lat, start.lon], {
-        icon: L.divIcon({
-          className: 'course-aid-marker course-aid-start',
-          html: `
-            <div class="course-aid-label-wrap">
-              <span class="course-aid-emoji" aria-hidden="true">🏁</span>
-              <span class="course-aid-label">Tylers</span>
-            </div>
-          `,
-          iconSize: [100, 44],
-          iconAnchor: [50, 44],
-        }),
-      }).addTo(map);
-    }
-
-    /* Aid station markers from first-lap distances */
+    const aidDebug = new URLSearchParams(location.search).get('aidDebug') === '1';
     const trackLen = track.trackLengthKm;
-    const loopLen = raceDistanceKm / 3;
-    for (const { name, km } of FIRST_LAP_AID_KM) {
-      const trackKm = (km / loopLen) * trackLen;
-      const pos = getPositionAtDistance(track.points, trackKm);
+    const LOOP_MILES = 22.2;
+
+    /* POIs: Tylers (start/finish) then aid stations; track km from AID_TRACK_KM or mile-based */
+    const tylersPoi = { name: 'Tylers', trackKm: AID_TRACK_KM.Tylers ?? 0 };
+    const aidPois = firstLapAidKm.map(({ name, mile }) => ({
+      name,
+      trackKm:
+        AID_TRACK_KM[name] != null
+          ? AID_TRACK_KM[name]
+          : (mile != null && LOOP_MILES > 0 ? Math.min(1, Math.max(0, mile / LOOP_MILES)) : 0) * trackLen,
+    }));
+    const pois = [tylersPoi, ...aidPois];
+
+    for (const { name, trackKm } of pois) {
+      const pos =
+        name === 'Tylers' && TYLERS_LATLON
+          ? { lat: TYLERS_LATLON.lat, lon: TYLERS_LATLON.lon }
+          : getPositionAtDistance(track.points, trackKm);
       if (pos) {
-        const m = L.marker([pos.lat, pos.lon], { icon: aidStationIcon(name) }).addTo(map);
+        const emoji = name === 'Tylers' ? '⭐' : '💧';
+        const m = L.marker([pos.lat, pos.lon], {
+          icon: aidStationIcon(name, emoji),
+          draggable: aidDebug,
+        }).addTo(map);
+        if (aidDebug) {
+          m.bindPopup('Drag to correct position').openPopup();
+          m.on('dragend', () => {
+            const latlng = m.getLatLng();
+            const km = getDistanceAlongTrack(track.points, latlng.lat, latlng.lng);
+            const text = `${name} — track km: ${km != null ? km.toFixed(2) : '—'} | lat: ${latlng.lat.toFixed(5)}, lon: ${latlng.lng.toFixed(5)}`;
+            m.setPopupContent(text).openPopup();
+          });
+        }
         aidStationMarkers.push(m);
       }
     }
@@ -171,10 +203,10 @@ export function initMap(container, options = {}) {
       : raceKmToTrackKm(effectiveKm, currentTrack.trackLengthKm, currentRaceStartKm, raceDistanceKm);
     const pos = getPositionAtDistance(currentTrack.points, trackKm);
     if (!pos) return;
-    {
-      const icon = runnerIcon(pos.bearing);
-      runnerMarker = L.marker([pos.lat, pos.lon], { icon }).addTo(map);
-    }
+    const onPrologueReturn = effectiveKm > PROLOGUE_OUT_KM && effectiveKm <= PROLOGUE_TOTAL_KM;
+    const bearing = onPrologueReturn ? (pos.bearing + 180) % 360 : pos.bearing;
+    const icon = runnerIcon(bearing);
+    runnerMarker = L.marker([pos.lat, pos.lon], { icon }).addTo(map);
   }
 
   function setRaceStartKm(km) {

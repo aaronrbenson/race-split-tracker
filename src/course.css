@@ -33,6 +33,25 @@ body.course-body #app,
   background: var(--surface);
 }
 
+/* Must sit above Leaflet panes (tile 200, overlay 400, marker 600, popup 700) */
+.map-container .map-surface-label {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 750;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  padding: 0.4rem 0.75rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
 /* Top layer: iOS-style sheet — height set by JS for swipe/snap */
 .course-sheet {
   position: absolute;
@@ -207,6 +226,9 @@ body.course-body #app,
 
 /* Aid station + start/finish labels: emoji + pill label */
 .course-aid-marker {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
   background: none !important;
   border: none !important;
   overflow: visible !important;
@@ -219,11 +241,11 @@ body.course-body #app,
 .course-aid-label-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px 6px 8px;
+  gap: 4px;
+  padding: 3px 8px 3px 6px;
   background: rgba(21, 29, 40, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
+  border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   white-space: nowrap;
   width: fit-content;
@@ -232,16 +254,17 @@ body.course-body #app,
 }
 
 .course-aid-emoji {
-  font-size: 1rem;
+  font-size: 0.75rem;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .course-aid-label {
-  font-size: 0.75rem;
+  font-size: 0.5625rem;
   font-weight: 600;
   color: #e6edf3;
   letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 /* Runner marker: hide default Leaflet icon styling, show emoji, rotation for bearing */

@@ -42,6 +42,7 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
+  padding-top: 20px;
 }
 
 .subtitle {
@@ -128,6 +129,15 @@ body {
   75% {
     transform: translate(-50%, -50%) scaleX(-1) rotate(1.5deg) translateY(-1px);
   }
+}
+
+.race-progress-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: center;
+  margin: 0;
 }
 
 .race-progress-total {
@@ -231,7 +241,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.35rem;
 }
 
 .hows-he-doing-emoji {
@@ -883,4 +893,121 @@ th {
   table {
     font-size: 0.875rem;
   }
+}
+
+/* ========== Finished! state: full-screen celebratory sheet ========== */
+.course-sheet-finished {
+  transition: height 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.course-sheet-finished .course-sheet-drag-area {
+  display: none;
+}
+
+.course-sheet-finished .course-sheet-inner {
+  background: linear-gradient(165deg, #0a1628 0%, #0f1f35 28%, #132542 50%, #0d1929 100%);
+  border-radius: 0;
+  box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  padding-top: 1.5rem;
+}
+
+.course-sheet-finished .course-sheet-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(201, 162, 39, 0.12) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.course-sheet-finished .course-sheet-inner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #c9a227 20%, #f0d875 50%, #c9a227 80%, transparent 100%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.course-sheet-finished .header .subtitle,
+.course-sheet-finished .footer {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.course-sheet-finished .header h1 {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.course-sheet-finished .race-progress {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.course-sheet-finished .race-progress .label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.6875rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
+}
+
+.course-sheet-finished .race-progress-trophy {
+  font-size: 4rem;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.4));
+  animation: finished-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes finished-glow {
+  from { filter: drop-shadow(0 0 16px rgba(201, 162, 39, 0.3)); }
+  to { filter: drop-shadow(0 0 24px rgba(201, 162, 39, 0.5)); }
+}
+
+.course-sheet-finished .race-progress-celebration-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f0e6c8;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 0 40px rgba(201, 162, 39, 0.2);
+}
+
+.course-sheet-finished .race-progress-stats {
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.course-sheet-finished .race-progress-celebration .race-progress-total {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.course-sheet-finished .hero {
+  display: none;
+}
+
+.course-sheet-finished .crew-guide {
+  display: none;
+}
+
+.course-sheet-finished .footer {
+  padding: 2.5rem 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.course-sheet-finished .footer p {
+  margin: 0;
 }

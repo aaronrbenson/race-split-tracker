@@ -116,6 +116,48 @@ export function getPositionAtDistance(track, distanceKm) {
 }
 
 /**
+ * Get distance along the track (km) for the closest point on the track to (lat, lon).
+ * Projects the point onto each segment and returns the cumulative km of the closest projection.
+ * @param {{ lat: number, lon: number, cumulKm: number }[]} track
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {number | null} distance in km along the track, or null if track is empty
+ */
+export function getDistanceAlongTrack(track, lat, lon) {
+  if (!track || track.length === 0) return null;
+  if (track.length === 1) return track[0].cumulKm;
+
+  let bestKm = track[0].cumulKm;
+  let bestDist = haversineKm(lat, lon, track[0].lat, track[0].lon);
+
+  for (let i = 0; i < track.length - 1; i++) {
+    const a = track[i];
+    const b = track[i + 1];
+    const segLat = b.lat - a.lat;
+    const segLon = b.lon - a.lon;
+    const dlat = lat - a.lat;
+    const dlon = lon - a.lon;
+    const segLen2 = segLat * segLat + segLon * segLon;
+    const t = segLen2 > 0 ? Math.max(0, Math.min(1, (dlat * segLat + dlon * segLon) / segLen2)) : 0;
+    const projLat = a.lat + t * segLat;
+    const projLon = a.lon + t * segLon;
+    const dist = haversineKm(lat, lon, projLat, projLon);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestKm = a.cumulKm + t * (b.cumulKm - a.cumulKm);
+    }
+  }
+
+  const last = track[track.length - 1];
+  const lastDist = haversineKm(lat, lon, last.lat, last.lon);
+  if (lastDist < bestDist) {
+    bestKm = last.cumulKm;
+  }
+
+  return bestKm;
+}
+
+/**
  * Map race distance (km) to track distance (km) when track may not include prologue.
  * - raceStartKm: race km at which the track starts (e.g. 3.5 if prologue is missing)
  * - raceDistanceKm: total race distance (e.g. 100.12)
@@ -130,16 +172,102 @@ export function raceKmToTrackKm(raceKm, trackLengthKm, raceStartKm = 0, raceDist
   return raceProgress * trackLengthKm;
 }
 
+/** Prologue out-and-back: out 1.25 km, back 1.25 km (2.5 km total) before joining the main loop. */
+export const PROLOGUE_OUT_KM = 1.25;
+export const PROLOGUE_TOTAL_KM = PROLOGUE_OUT_KM * 2;
+
 /**
- * Map race distance to track distance when the race is 3 loops (0–100 km = 3 laps).
- * Loop length = raceDistanceKm/3; prologue (raceKm <= raceStartKm) stays at track start.
+ * Map race distance to track distance when the race is 3 loops with a prologue out-and-back.
+ * Prologue: 0–1.25 km = out along track, 1.25–2.5 km = back to start, 2.5–raceStartKm = first km of loop.
+ * Then three full loops; first lap starts at track km 1 so we join smoothly after the prologue.
  */
 export function raceKmToTrackKmThreeLoops(raceKm, trackLengthKm, raceStartKm = 0, raceDistanceKm = 100.12) {
-  if (raceKm <= raceStartKm) return 0;
+  if (raceKm <= 0) return 0;
   if (raceKm >= raceDistanceKm) return trackLengthKm;
+
   const loopLengthRaceKm = raceDistanceKm / 3;
-  const raceKmInLoop = ((raceKm % loopLengthRaceKm) + loopLengthRaceKm) % loopLengthRaceKm;
-  return (raceKmInLoop / loopLengthRaceKm) * trackLengthKm;
+
+  /* Prologue: out 1.25 km, back 1.25 km along the track */
+  if (raceKm <= PROLOGUE_OUT_KM) {
+    return Math.min(raceKm, trackLengthKm);
+  }
+  if (raceKm <= PROLOGUE_TOTAL_KM) {
+    return Math.max(0, PROLOGUE_TOTAL_KM - raceKm);
+  }
+
+  /* 2.5 to raceStartKm: first stretch along the track (0 to raceStartKm - 2.5) so we join the loop */
+  if (raceKm <= raceStartKm) {
+    const segmentKm = raceKm - PROLOGUE_TOTAL_KM;
+    return Math.min(segmentKm, trackLengthKm);
+  }
+
+  /* Main loop: laps start at raceStartKm. First lap uses track from (raceStartKm - 2.5) so we're continuous. */
+  const raceKmIntoLoops = raceKm - raceStartKm;
+  const lapIndex = Math.floor(raceKmIntoLoops / loopLengthRaceKm);
+  const kmInLap = raceKmIntoLoops - lapIndex * loopLengthRaceKm;
+  const trackKmInLap = (kmInLap / loopLengthRaceKm) * trackLengthKm;
+
+  if (lapIndex === 0) {
+    const prologueTrackKm = Math.min(raceStartKm - PROLOGUE_TOTAL_KM, trackLengthKm);
+    return prologueTrackKm + (trackLengthKm - prologueTrackKm) * (kmInLap / loopLengthRaceKm);
+  }
+
+  return trackKmInLap;
+}
+
+/**
+ * Inverse of raceKmToTrackKmThreeLoops: given track km and lap index, return race km.
+ * lapIndex 0 = first full lap (after prologue), 1 = second lap, 2 = third lap.
+ */
+export function trackKmToRaceKmForLap(trackKm, lapIndex, trackLengthKm, raceStartKm = 3.5, raceDistanceKm = 100.12) {
+  const loopLengthRaceKm = raceDistanceKm / 3;
+  const prologueTrackKm = Math.min(raceStartKm - PROLOGUE_TOTAL_KM, trackLengthKm);
+
+  if (lapIndex === 0) {
+    const kmInLap = ((trackKm - prologueTrackKm) / (trackLengthKm - prologueTrackKm)) * loopLengthRaceKm;
+    return raceStartKm + kmInLap;
+  }
+  const kmInLap = (trackKm / trackLengthKm) * loopLengthRaceKm;
+  return raceStartKm + lapIndex * loopLengthRaceKm + kmInLap;
+}
+
+/** Track km positions for aid stations (from map placement). Used to derive race km for progress table. */
+const AID_TRACK_KM_MAP = {
+  Tylers: 0.51,
+  Gate: 6.3,
+  'Nature Center': 14.87,
+  'Dam Nation': 24.89,
+};
+
+/**
+ * Return race km for each of the 14 aid stations in AID_STATIONS_KM order, so progress table aligns with map.
+ * Uses same prologue/loop math as raceKmToTrackKmThreeLoops.
+ */
+export function getAidStationRaceKmFromTrack(trackLengthKm, raceStartKm = 3.5, raceDistanceKm = 100.12) {
+  const loopLengthRaceKm = raceDistanceKm / 3;
+  const endLap0 = raceStartKm + loopLengthRaceKm;
+  const endLap1 = raceStartKm + 2 * loopLengthRaceKm;
+
+  const gate = (lap) => trackKmToRaceKmForLap(AID_TRACK_KM_MAP.Gate, lap, trackLengthKm, raceStartKm, raceDistanceKm);
+  const natureCenter = (lap) => trackKmToRaceKmForLap(AID_TRACK_KM_MAP['Nature Center'], lap, trackLengthKm, raceStartKm, raceDistanceKm);
+  const damNation = (lap) => trackKmToRaceKmForLap(AID_TRACK_KM_MAP['Dam Nation'], lap, trackLengthKm, raceStartKm, raceDistanceKm);
+
+  return [
+    0,
+    raceStartKm,
+    gate(0),
+    natureCenter(0),
+    damNation(0),
+    endLap0,
+    gate(1),
+    natureCenter(1),
+    damNation(1),
+    endLap1,
+    gate(2),
+    natureCenter(2),
+    damNation(2),
+    raceDistanceKm,
+  ];
 }
 
 /**

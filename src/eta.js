@@ -1,4 +1,3 @@
-import { AID_STATIONS_KM, SPLITS_100K_KM } from './data.js';
 
 /**
  * Parse "9:15 AM" / "1:45 PM" into minutes from midnight (local).
@@ -28,14 +27,15 @@ function formatMinutesToClock(totalMinutes) {
 /**
  * Compute ETAs for all aid stations given runner's split data.
  * @param {Array<{ km: number, clockTime: string }>} splits - ascending by km, clock times like "9:15 AM"
+ * @param {Array<{ name: string, km: number, target: string, crewAccess: boolean }>} aidStations - pacing plan aid stations
  * @returns {{ lastSplit: { km: number, clockTime: string, label?: string }, etas: Array<{ name: string, km: number, eta: string, crewAccess: boolean }> }}
  */
-export function computeETAs(splits) {
+export function computeETAs(splits, aidStations) {
   if (!splits || splits.length === 0) {
     return {
       lastSplit: null,
       planDeltaAtLastSplit: null,
-      etas: AID_STATIONS_KM.map((s) => ({
+      etas: aidStations.map((s) => ({
         name: s.name,
         km: s.km,
         eta: s.target && s.target !== '—' ? s.target : '—',
@@ -55,7 +55,7 @@ export function computeETAs(splits) {
     return {
       lastSplit: { km: lastKm, clockTime: last.clockTime, label },
       planDeltaAtLastSplit: null,
-      etas: AID_STATIONS_KM.map((s) => ({
+      etas: aidStations.map((s) => ({
         name: s.name,
         km: s.km,
         eta: s.target && s.target !== '—' ? s.target : '—',
@@ -114,9 +114,9 @@ export function computeETAs(splits) {
     return lastMinutes + paceMinPerKm * (st.km - lastKm);
   }
 
-  const lastStationIndex = AID_STATIONS_KM.length - 1;
+  const lastStationIndex = aidStations.length - 1;
 
-  const etas = AID_STATIONS_KM.map((station, index) => {
+  const etas = aidStations.map((station, index) => {
     let etaMinutes = etaMinutesForStation(station);
     const etaStr = etaMinutes != null ? formatMinutesToClock(etaMinutes) : '—';
     let planDeltaMinutes = null;
@@ -129,7 +129,7 @@ export function computeETAs(splits) {
         // so you don't suddenly show "76 min ahead" when you were behind everywhere else.
         const isFinish = index === lastStationIndex;
         if (isFinish && lastStationIndex > 0) {
-          const prevStation = AID_STATIONS_KM[lastStationIndex - 1];
+          const prevStation = aidStations[lastStationIndex - 1];
           const prevEta = etaMinutesForStation(prevStation);
           const prevTarget = prevStation.target && prevStation.target !== '—' ? parseClockToMinutes(prevStation.target) : null;
           if (prevEta != null && prevTarget != null) {
@@ -165,8 +165,8 @@ export function computeETAs(splits) {
 
   // Global "vs plan" at current position: interpolate plan target at lastKm, compare to lastMinutes.
   let planDeltaAtLastSplit = null;
-  const beforeStations = AID_STATIONS_KM.filter((s) => s.km <= lastKm);
-  const afterStations = AID_STATIONS_KM.filter((s) => s.km > lastKm);
+  const beforeStations = aidStations.filter((s) => s.km <= lastKm);
+  const afterStations = aidStations.filter((s) => s.km > lastKm);
   if (beforeStations.length > 0 && afterStations.length > 0) {
     const a = beforeStations[beforeStations.length - 1];
     const b = afterStations[0];
