@@ -1,4 +1,4 @@
-import { RACE_DISTANCE_KM } from './data.js';
+import { RACE_DISTANCE_KM, SPLITS_100K_KM } from './data.js';
 import { computeETAs } from './eta.js';
 import { fetchRunnerInfo } from './edsFetcher.js';
 import { isTestModeActive, getTestRunnerState, startTestMode } from './testMode.js';
@@ -169,6 +169,63 @@ function pickMessage(messages, km) {
   if (!messages || messages.length === 0) return '';
   const idx = Math.floor((km ?? 0) * 0.5) % messages.length;
   return messages[idx];
+}
+
+/**
+ * Render official splits table on the finished screen.
+ * @param {HTMLElement | null} container
+ * @param {Array<{ km: number, clockTime: string, splitId?: string }>} splits
+ * @param {string | null} totalRaceTime - e.g. "14:30:00"
+ */
+function renderFinishedSplits(container, splits, totalRaceTime) {
+  if (!container) return;
+  const sorted = [...splits].filter((s) => s.km != null && s.clockTime).sort((a, b) => a.km - b.km);
+  if (sorted.length === 0 && !totalRaceTime) {
+    container.innerHTML = '';
+    return;
+  }
+  const rows = sorted.map((s) => {
+    const labelMatch = SPLITS_100K_KM.find((sp) => Math.abs(sp.km - s.km) < 0.1 || sp.id === s.splitId);
+    const label = labelMatch ? labelMatch.label : `${s.km.toFixed(1)} km`;
+    const clockMin = parseClockToMinutes(s.clockTime);
+    const elapsed = clockMin != null ? formatTimeOnCourse(clockMin - RACE_START_MINUTES) : '—';
+    return { label, km: s.km, clockTime: s.clockTime, elapsed };
+  });
+  if (totalRaceTime && (rows.length === 0 || rows[rows.length - 1].km < 99)) {
+    rows.push({
+      label: 'Finish',
+      km: RACE_DISTANCE_KM,
+      clockTime: '—',
+      elapsed: totalRaceTime,
+    });
+  } else if (totalRaceTime && rows.length > 0) {
+    rows[rows.length - 1].elapsed = totalRaceTime;
+  }
+  container.innerHTML = `
+    <h2 class="finished-splits-title">Official splits</h2>
+    <div class="finished-splits-table-wrap">
+      <table class="finished-splits-table" aria-label="Official split times">
+        <thead>
+          <tr>
+            <th scope="col">Split</th>
+            <th scope="col">Distance</th>
+            <th scope="col">Clock time</th>
+            <th scope="col">Elapsed</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r) => `
+            <tr>
+              <td>${r.label}</td>
+              <td>${r.km.toFixed(2)} km</td>
+              <td>${r.clockTime}</td>
+              <td>${r.elapsed}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 function isDataStale(lastSplit) {
@@ -344,7 +401,7 @@ const HOWS_HE_DOING_MESSAGES = {
   [STATUS.BEHIND]: [
     "A little behind, but he's been through worse.",
     'Slightly off pace. Totally manageable.',
-    'A few minutes back — nothing to worry about yet.',
+    'A few minutes back, nothing to worry about yet.',
     'Behind schedule but still in the game.',
   ],
   [STATUS.VERY_BEHIND]: [
@@ -557,6 +614,11 @@ function refresh() {
     }
     const { lastSplit, etas, planDeltaAtLastSplit } = computeETAs(splits, aidStations);
     const isFinished = (lastSplit?.km ?? 0) >= 99.5 || !!runner.totalRaceTime;
+    const app = document.getElementById('app');
+    if (app) {
+      if (isFinished) app.classList.add('course-finished');
+      else app.classList.remove('course-finished');
+    }
     const sheet = document.getElementById('course-sheet');
     if (sheet) {
       if (isFinished) {
@@ -576,6 +638,7 @@ function refresh() {
       }
     }
     renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null);
+    renderFinishedSplits(document.getElementById('finished-splits'), isFinished ? (runner.splits || []) : [], runner.totalRaceTime ?? null);
     renderLastSplit(document.getElementById('last-split'), lastSplit);
     renderProgressLine(document.getElementById('progress-line'), lastSplit, etas);
     renderHowsHeDoing(document.getElementById('hows-he-doing'), lastSplit, etas, planDeltaAtLastSplit, isFinished, testModeActive);
@@ -613,6 +676,7 @@ export function init(options = {}) {
   // Render dynamic sections immediately with default/empty data so they are visible before refresh() resolves
   const { etas: defaultEtas } = computeETAs([], aidStations);
   renderRaceProgress(document.getElementById('race-progress'), null, null);
+  renderFinishedSplits(document.getElementById('finished-splits'), [], null);
   renderLastSplit(document.getElementById('last-split'), null);
   renderProgressLine(document.getElementById('progress-line'), null, defaultEtas);
   renderHowsHeDoing(document.getElementById('hows-he-doing'), null, defaultEtas, null, false);
