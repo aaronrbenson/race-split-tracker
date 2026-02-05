@@ -690,7 +690,21 @@ export function init(options = {}) {
   if (sheetInner) sheetInner.scrollTop = 0;
 
   const refreshBtn = document.getElementById('header-refresh-btn');
-  if (refreshBtn) refreshBtn.addEventListener('click', () => refresh());
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      const icon = refreshBtn.querySelector('.header-refresh-icon');
+      if (icon) {
+        icon.classList.add('header-refresh-icon-spin');
+        const onEnd = () => {
+          icon.classList.remove('header-refresh-icon-spin');
+          icon.removeEventListener('animationend', onEnd);
+        };
+        icon.addEventListener('animationend', onEnd);
+      }
+      refresh();
+      refreshBtn.blur();
+    });
+  }
 
   const testParam = new URLSearchParams(location.search).get('test');
   if (testParam === 'finish' || testParam === '5') {

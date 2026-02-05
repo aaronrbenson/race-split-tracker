@@ -66,18 +66,30 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-.header-refresh-btn:hover {
-  background: var(--surface);
-  color: var(--accent);
-}
+@media (hover: hover) {
+  .header-refresh-btn:hover {
+    background: var(--surface);
+    color: var(--accent);
+  }
 
-.header-refresh-btn:active {
-  transform: scale(0.96);
+  .header-refresh-btn:active {
+    transform: scale(0.96);
+  }
 }
 
 .header-refresh-icon {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+.header-refresh-icon-spin {
+  animation: header-refresh-spin 0.5s ease-in-out;
+}
+
+@keyframes header-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .header h1 {
