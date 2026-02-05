@@ -92,5 +92,6 @@ export function initSheetDrag() {
   });
 
   const { full } = getHeights();
-  setSheetHeight(Math.max(200, Math.round(full * SHEET_DEFAULT)));
+  const defaultPx = Math.round(full * SHEET_DEFAULT) + 100;
+  setSheetHeight(Math.max(200, Math.min(full, defaultPx)));
 }
