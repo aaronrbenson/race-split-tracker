@@ -219,12 +219,17 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
   /* Show two runners once in "final stretch" (split 5 = 77.25 km); we never have a split at 82.4 so use 77.25 */
   const hasPacer = progressKm >= 77.25;
   const secondRunner = hasPacer ? `<span class="race-progress-runner race-progress-runner-pacer race-progress-runner-anim" style="left: 0" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>` : '';
+  const aidStationMarkers = (aidStations || []).filter((s) => s.km > 0 && s.km < RACE_DISTANCE_KM).map((s) => {
+    const pct = (s.km / RACE_DISTANCE_KM) * 100;
+    return `<span class="race-progress-aid-marker" style="left: ${pct}%" aria-hidden="true"></span>`;
+  }).join('');
   container.innerHTML = `
     <p class="label">Overall Status</p>
     <div class="race-progress-bar-wrap">
       <span class="race-progress-emoji" aria-hidden="true">🏁</span>
       <div class="race-progress-track">
         <div class="race-progress-fill race-progress-fill-anim" style="width: 0"></div>
+        ${aidStationMarkers}
         <span class="race-progress-runner race-progress-runner-anim" style="left: 0" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>
         ${secondRunner}
       </div>
@@ -302,9 +307,9 @@ function renderProgressLine(container, lastSplit, etas) {
   const { next } = getLastNextStations(lastSplitKm, etas);
 
   const nextTime = next ? next.eta : '—';
-  const nextName = next ? `@ ${next.name}` : '—';
-  const nextIsLastNatureCenter = next && next.name === 'Nature Center' && next.km >= LAST_NATURE_CENTER_KM - 0.1;
-  const nextPacerNote = nextIsLastNatureCenter ? '<div class="progress-next-pacer-note">Pickup Zach</div>' : '';
+  const nextName = next ? `@ ${(next.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim()}` : '—';
+  const nextIsLastNatureCenter = next && next.name.includes('Nature Center') && next.km >= LAST_NATURE_CENTER_KM - 0.1;
+  const nextPacerNote = nextIsLastNatureCenter ? '<div class="progress-next-pacer-note">Get ready, Zach!</div>' : '';
 
   const statusBand = getStatusBand(next?.planDeltaMinutes);
   const nextTimeClass = getProgressTimeClass(statusBand);
@@ -436,14 +441,14 @@ function renderETAs(container, etas, lastSplitKm) {
     const headerLi = lastSection !== section ? `<li class="eta-section-header">${section}</li>` : '';
     lastSection = section;
     const isCleared = cleared && e.km <= lastSplitKm;
-    const isLastNatureCenter = e.name === 'Nature Center' && e.km >= LAST_NATURE_CENTER_KM - 0.1;
+    const isLastNatureCenter = e.name.includes('Nature Center') && e.km >= LAST_NATURE_CENTER_KM - 0.1;
     const classes = [e.crewAccess ? 'crew-access' : '', isCleared ? 'eta-cleared' : '', isLastNatureCenter ? 'eta-row-with-reminder' : ''].filter(Boolean).join(' ');
     const pacerBlock = isLastNatureCenter
       ? `<div class="pacer-reminder">📌 Pick up Zach as Pacer Here</div>`
       : '';
     const rowLi = `<li class="${classes}">
       <div class="eta-row-top">
-        <span>${e.name} <span class="km">${e.km.toFixed(1)} km</span></span>
+        <span>${(e.name || '').replace(/\s*\([^)]*\)\s*$/, '').trim()} <span class="km">${e.km.toFixed(1)} km</span></span>
         <span class="eta-cell"><span class="eta-time">${e.eta}</span></span>
       </div>
       ${pacerBlock}
