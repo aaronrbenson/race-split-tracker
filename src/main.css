@@ -722,34 +722,45 @@ body {
   margin: 0.5rem 0 0;
 }
 
-.checkin-form-field {
+/* Primary check-in: km + button above the fold, large touch targets */
+.checkin-primary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  min-height: 50vh;
+}
+
+.checkin-form-primary {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
-  max-width: 20rem;
+  max-width: 22rem;
   margin: 0 auto;
-}
-
-.checkin-form-field .checkin-km-wrap {
   width: 100%;
-  margin-bottom: 1rem;
 }
 
-.checkin-form-field .checkin-km-label {
+.checkin-form-primary .checkin-km-wrap {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.checkin-form-primary .checkin-km-label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--muted);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   text-align: center;
 }
 
-.checkin-form-field .checkin-km-input {
+.checkin-form-primary .checkin-km-input {
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: 0.75rem 1rem;
-  font-size: 2.25rem;
+  padding: 1rem 1.25rem;
+  font-size: 2.75rem;
   font-weight: 600;
   text-align: center;
   border: 2px solid rgba(255, 255, 255, 0.2);
@@ -758,129 +769,75 @@ body {
   color: var(--text);
   -webkit-appearance: none;
   appearance: none;
+  min-height: 4rem;
+  touch-action: manipulation;
 }
 
-.checkin-form-field .checkin-km-input::placeholder {
+.checkin-form-primary .checkin-km-input::placeholder {
   color: var(--muted);
   opacity: 0.7;
 }
 
-.checkin-form-field .checkin-submit-primary {
+.checkin-form-primary .checkin-submit-primary {
   width: 100%;
-  padding: 0.9rem 1.25rem;
-  font-size: 1.125rem;
-  margin-bottom: 0.5rem;
+  padding: 1rem 1.5rem;
+  font-size: 1.25rem;
+  min-height: 3.5rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.checkin-form-field .checkin-section-msg {
+.checkin-form-primary .checkin-section-msg {
   text-align: center;
-  margin-bottom: 1.25rem;
-  min-height: 1.25rem;
+  margin-top: 1rem;
+  min-height: 1.5rem;
+  font-size: 0.875rem;
 }
 
-.checkin-form-field .checkin-bib-wrap {
-  width: 100%;
-  padding-top: 0.75rem;
+/* Below the fold: bib + reset, de-emphasized */
+.checkin-below-fold {
+  padding: 2rem 1rem 3rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.15);
 }
 
-.checkin-form-field .checkin-bib-label {
+.checkin-form-below-fold {
+  max-width: 22rem;
+  margin: 0 auto;
+}
+
+.checkin-form-below-fold .checkin-bib-wrap {
+  margin-bottom: 1rem;
+}
+
+.checkin-form-below-fold .checkin-bib-label {
   display: block;
   font-size: 0.75rem;
   color: var(--muted);
-  margin-bottom: 0.2rem;
-  text-align: center;
+  margin-bottom: 0.25rem;
 }
 
-.checkin-form-field .checkin-bib-input {
+.checkin-form-below-fold .checkin-bib-input {
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: 0.35rem 0.5rem;
-  font-size: 0.8125rem;
-  text-align: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
   background: var(--bg);
   color: var(--muted);
 }
 
-.checkin-form-field .checkin-reset-wrap {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
+.checkin-form-below-fold .checkin-reset-wrap {
+  margin: 0;
+  padding-top: 1rem;
 }
 
-.checkin-page-admin-wrap {
-  margin-top: 3.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.admin-section {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: var(--surface);
-  border-radius: var(--radius);
-}
-
-.admin-section h2 {
-  font-size: 0.875rem;
-  margin: 0 0 0.75rem;
-  color: var(--muted);
-}
-
-.admin-section-desc {
-  font-size: 0.8125rem;
-  color: var(--muted);
-  margin: 0 0 0.75rem;
-}
-
-.admin-section label {
-  display: block;
-  font-size: 0.8125rem;
-  margin-bottom: 0.25rem;
-  color: var(--muted);
-}
-
-.admin-section input {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 0.9375rem;
-}
-
-.admin-section-error {
-  font-size: 0.8125rem;
-  color: var(--warning);
-  margin: 0 0 0.5rem;
-  min-height: 1.25rem;
-}
-
-.admin-section-actions {
+.checkin-page-main {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.admin-section-actions button {
-  padding: 0.5rem 1rem;
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.admin-section-actions button:last-child {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-direction: column;
+  min-height: calc(100vh - 5rem);
 }
 
 .crew-guide section {

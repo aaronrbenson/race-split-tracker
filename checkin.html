@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Check in</title>
     <link rel="stylesheet" href="/src/main.css" />
   </head>
@@ -13,10 +13,8 @@
         <p class="checkin-page-desc">Current km · time is automatic</p>
       </header>
       <main class="checkin-page-main">
-        <section class="checkin-section" id="checkin-section" aria-label="Runner check-in"></section>
-        <div class="checkin-page-admin-wrap">
-          <section class="admin-section" id="admin-section" aria-label="Test position"></section>
-        </div>
+        <section class="checkin-primary" id="checkin-section" aria-label="Runner check-in"></section>
+        <section class="checkin-below-fold" id="checkin-below-fold" aria-label="Settings"></section>
       </main>
     </div>
     <script type="module" src="/src/checkinPage.js"></script>
