@@ -729,7 +729,7 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 1.5rem 1rem;
-  min-height: 50vh;
+  min-height: 70vh;
 }
 
 .checkin-form-primary {
@@ -794,9 +794,10 @@ body {
   font-size: 0.875rem;
 }
 
-/* Below the fold: bib + reset, de-emphasized */
+/* Below the fold: bib + reset, de-emphasized, pushed down */
 .checkin-below-fold {
-  padding: 2rem 1rem 3rem;
+  padding: 4rem 1rem 3rem;
+  margin-top: 4rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.15);
 }
