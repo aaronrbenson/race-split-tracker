@@ -293,7 +293,6 @@ function renderRaceProgress(container, lastSplit, totalRaceTime, skipFillTween =
   container.innerHTML = `
     <p class="label">Overall Status</p>
     <div class="race-progress-bar-wrap">
-      <span class="race-progress-emoji" aria-hidden="true">🏁</span>
       <div class="race-progress-track">
         <div class="race-progress-fill${fillAnimClass}" style="width: ${fillWidth}%"></div>
         ${aidStationMarkers}
