@@ -1,14 +1,25 @@
 :root {
-  --bg: #0f1419;
-  --surface: #1a2332;
-  --sheet-bg: #151d28;
-  --card-bg: #1e2a3a;
+  --bg: #141414;
+  --surface: #1c1c1a;
+  --sheet-bg: #181716;
+  --card-bg: #222120;
   --text: #e6edf3;
   --muted: #8b949e;
   --accent: #58a6ff;
+  --accent-rgb: 88, 166, 255;
   --success: #3fb950;
+  --success-vibrant: #22ff88;
+  --success-vibrant-rgb: 34, 255, 136;
   --warning: #d29922;
+  --warning-vibrant: #ffb300;
   --danger: #f85149;
+  --danger-vibrant: #ff3333;
+  --gold: #c9a227;
+  --gold-light: #f0d875;
+  --gold-pale: #f0e6c8;
+  --gold-rgb: 201, 162, 39;
+  --crew-accent: #e9a66c;
+  --crew-accent-rgb: 233, 166, 108;
   --radius: 8px;
   --card-radius: 10px;
   --font: system-ui, -apple-system, sans-serif;
@@ -335,7 +346,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.35rem;
+  gap: calc(0.35rem + 6px);
 }
 
 .hows-he-doing-emoji {
@@ -348,6 +359,7 @@ body {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
+  line-height: 1.25;
   color: var(--text);
   max-width: 80%;
 }
@@ -424,23 +436,23 @@ body {
 }
 
 .progress-station.progress-next .progress-time {
-  color: var(--success);
+  color: var(--success-vibrant);
 }
 
 .progress-station.progress-next .progress-time.progress-time-ahead {
-  color: var(--success);
+  color: var(--success-vibrant);
 }
 
 .progress-station.progress-next .progress-time.progress-time-on {
-  color: var(--success);
+  color: var(--success-vibrant);
 }
 
 .progress-station.progress-next .progress-time.progress-time-behind {
-  color: var(--warning);
+  color: var(--warning-vibrant);
 }
 
 .progress-station.progress-next .progress-time.progress-time-very-behind {
-  color: var(--danger);
+  color: var(--danger-vibrant);
 }
 
 .progress-next-pacer-note {
@@ -452,8 +464,8 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--accent);
-  background: rgba(88, 166, 255, 0.1);
+  color: var(--success-vibrant);
+  background: rgba(var(--success-vibrant-rgb), 0.15);
   border-radius: var(--radius);
 }
 
@@ -530,7 +542,7 @@ body {
 }
 
 .eta-list .crew-access {
-  color: var(--accent);
+  color: var(--crew-accent);
 }
 
 .eta-list li.eta-cleared {
@@ -555,9 +567,9 @@ body {
   padding: 0.5rem 0.75rem;
   margin-top: 0.35rem;
   border-radius: var(--radius);
-  background: rgba(88, 166, 255, 0.12);
-  border: 1px solid rgba(88, 166, 255, 0.25);
-  color: var(--accent);
+  background: rgba(var(--success-vibrant-rgb), 0.15);
+  border: 1px solid rgba(var(--success-vibrant-rgb), 0.4);
+  color: var(--success-vibrant);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -583,11 +595,11 @@ body {
 }
 
 .plan-status-global.plan-status-ahead {
-  color: var(--success);
+  color: var(--success-vibrant);
 }
 
 .plan-status-global.plan-status-behind {
-  color: var(--warning);
+  color: var(--warning-vibrant);
 }
 
 .plan-status-global.plan-status-on {
@@ -611,11 +623,11 @@ body {
 }
 
 .eta-list li.plan-status-ahead .eta-plan {
-  color: var(--success);
+  color: var(--success-vibrant);
 }
 
 .eta-list li.plan-status-behind .eta-plan {
-  color: var(--warning);
+  color: var(--warning-vibrant);
 }
 
 .progress-station .progress-station-plan {
@@ -625,11 +637,11 @@ body {
 }
 
 .progress-station .progress-station-plan.plan-status-ahead {
-  color: var(--success);
+  color: var(--success-vibrant);
 }
 
 .progress-station .progress-station-plan.plan-status-behind {
-  color: var(--warning);
+  color: var(--warning-vibrant);
 }
 
 .config {
@@ -719,7 +731,7 @@ body {
 }
 
 .checkin-section-msg-success {
-  color: var(--success, #22c55e);
+  color: var(--success);
 }
 
 .checkin-section-msg-error {
@@ -1001,7 +1013,7 @@ th {
 }
 
 .course-sheet-finished .course-sheet-inner {
-  background: linear-gradient(165deg, #0a1628 0%, #0f1f35 28%, #132542 50%, #0d1929 100%);
+  background: linear-gradient(165deg, #0f0e0d 0%, #161514 28%, #1a1816 50%, #121110 100%);
   border-radius: 0;
   box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.5);
   position: relative;
@@ -1013,7 +1025,7 @@ th {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(201, 162, 39, 0.12) 0%, transparent 50%);
+  background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(var(--gold-rgb), 0.12) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -1024,7 +1036,7 @@ th {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent 0%, #c9a227 20%, #f0d875 50%, #c9a227 80%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 20%, var(--gold-light) 50%, var(--gold) 80%, transparent 100%);
   opacity: 0.9;
   pointer-events: none;
 }
@@ -1042,7 +1054,7 @@ th {
 
 .course-sheet-finished .race-progress {
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(201, 162, 39, 0.25);
+  border: 1px solid rgba(var(--gold-rgb), 0.25);
   border-radius: 16px;
   padding: 2rem 1.5rem;
   margin-top: 0.5rem;
@@ -1066,19 +1078,19 @@ th {
 
 .course-sheet-finished .race-progress-trophy {
   font-size: 4rem;
-  filter: drop-shadow(0 0 20px rgba(201, 162, 39, 0.4));
+  filter: drop-shadow(0 0 20px rgba(var(--gold-rgb), 0.4));
   animation: finished-glow 2s ease-in-out infinite alternate;
 }
 
 .course-sheet-finished .race-progress-trophy-100 {
   font-size: 3.25rem;
-  color: #f0e6c8;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(201, 162, 39, 0.3);
+  color: var(--gold-pale);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(var(--gold-rgb), 0.3);
 }
 
 @keyframes finished-glow {
-  from { filter: drop-shadow(0 0 16px rgba(201, 162, 39, 0.3)); }
-  to { filter: drop-shadow(0 0 24px rgba(201, 162, 39, 0.5)); }
+  from { filter: drop-shadow(0 0 16px rgba(var(--gold-rgb), 0.3)); }
+  to { filter: drop-shadow(0 0 24px rgba(var(--gold-rgb), 0.5)); }
 }
 
 @keyframes finished-pulse {
@@ -1089,10 +1101,10 @@ th {
 .course-sheet-finished .race-progress-celebration-title {
   font-size: 2rem;
   font-weight: 800;
-  color: #f0e6c8;
+  color: var(--gold-pale);
   letter-spacing: 0.02em;
   margin: 0 0 0.5rem;
-  text-shadow: 0 0 40px rgba(201, 162, 39, 0.2);
+  text-shadow: 0 0 40px rgba(var(--gold-rgb), 0.2);
 }
 
 .course-sheet-finished .race-progress-stats {
@@ -1148,7 +1160,7 @@ th {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 12px;
-  border: 1px solid rgba(201, 162, 39, 0.2);
+  border: 1px solid rgba(var(--gold-rgb), 0.2);
   background: rgba(255, 255, 255, 0.04);
 }
 

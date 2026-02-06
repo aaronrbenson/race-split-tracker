@@ -243,7 +243,7 @@ body.course-body #app,
   align-items: center;
   gap: 4px;
   padding: 3px 8px 3px 6px;
-  background: rgba(21, 29, 40, 0.95);
+  background: rgba(24, 23, 22, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -262,7 +262,7 @@ body.course-body #app,
 .course-aid-label {
   font-size: 0.5625rem;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
