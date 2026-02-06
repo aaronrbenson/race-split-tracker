@@ -537,38 +537,6 @@ function normalizeTimeInput(str) {
   return s;
 }
 
-function renderWhatToHave(container) {
-  if (!container) return;
-  container.innerHTML = `
-    <h2>What to have ready</h2>
-    <ul>
-      <li>Fresh socks (2 pairs)</li>
-      <li>Backup Tailwind / gels</li>
-      <li>Sunscreen</li>
-      <li>Ice bandana / cooling towel</li>
-      <li>Headlamp + fresh batteries (he'll need it after ~6:00 PM)</li>
-      <li>Real food: PB&J, banana, whatever sounds good</li>
-      <li>A chair (sit 1–2 min MAX — don't let him sit too long!)</li>
-    </ul>
-  `;
-}
-
-function renderCrewTips(container) {
-  if (!container) return;
-  container.innerHTML = `
-    <h2>Crew tips</h2>
-    <ul>
-      <li>Be positive but efficient. Hand him what he needs — don't ask "what do you want?"</li>
-      <li>Don't be alarmed if he looks rough. That's normal for a 100k. If he's moving, he's fine.</li>
-      <li>The Lap 2 stop (Tyler's) is the big one. He'll be hot and tired. Sock change, ice bandana, sunscreen, real food.</li>
-      <li>Weather: Starts cool (45°F), peaks ~75°F around 2–3 PM, cools to 55°F by finish.</li>
-      <li>Lap 4 will be slow — that's the plan. He's never run past 50K. Expect him to take his time.</li>
-      <li>If he's late: Don't panic. Use the "Window" column times as your outer window; estimated arrivals above update with current pace.</li>
-      <li><strong>Race strategy:</strong> Aaron is running a conservative, smart race for his first 100k. His main goal is to finish, not get a fast time. If he's "slower than expected" at Tyler's in the first laps, that's good; he's saving energy for the unknown miles ahead. Trust the plan!</li>
-    </ul>
-  `;
-}
-
 async function getRunnerData() {
   if (isTestModeActive()) {
     const state = getTestRunnerState();
@@ -693,9 +661,6 @@ export function init(options = {}) {
   renderProgressLine(document.getElementById('progress-line'), null, defaultEtas);
   renderHowsHeDoing(document.getElementById('hows-he-doing'), null, defaultEtas, null, false);
   renderETAs(document.getElementById('eta-section'), defaultEtas, null);
-
-  renderWhatToHave(document.getElementById('what-to-have'));
-  renderCrewTips(document.getElementById('crew-tips'));
 
   // Ensure sheet content starts scrolled to top so progress/ETAs are visible
   const sheetInner = document.querySelector('.course-sheet-inner');

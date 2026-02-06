@@ -985,6 +985,34 @@ th {
   color: var(--text);
 }
 
+.nutrition-mindset {
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nutrition-mindset p {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.nutrition-mindset p:last-child {
+  margin-bottom: 0;
+}
+
+.nutrition-mindset-strategy {
+  color: var(--crew-accent) !important;
+}
+
+.nutrition-weather {
+  font-size: 0.75rem !important;
+  opacity: 0.9;
+}
+
 .nutrition-guide h3 {
   font-size: 0.8125rem;
   font-weight: 600;
