@@ -238,7 +238,13 @@ function isDataStale(lastSplit) {
   return minutesSince > STALE_THRESHOLD_MINUTES;
 }
 
-function renderRaceProgress(container, lastSplit, totalRaceTime) {
+/**
+ * @param {HTMLElement} container
+ * @param {{ km: number, clockTime: string } | null} lastSplit
+ * @param {string | null} totalRaceTime
+ * @param {boolean} [skipFillTween] - If true (e.g. test mode), bar and runner use final position immediately so the bar "fills" correctly on each update.
+ */
+function renderRaceProgress(container, lastSplit, totalRaceTime, skipFillTween = false) {
   if (!container) return;
   const progressKm = lastSplit?.km ?? 0;
   const progressPct = Math.min(100, Math.max(0, (progressKm / RACE_DISTANCE_KM) * 100));
@@ -275,7 +281,11 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
   const progressEmoji = getProgressEmoji(progressKm);
   /* Show two runners once in "final stretch" (split 5 = 77.25 km); we never have a split at 82.4 so use 77.25 */
   const hasPacer = progressKm >= 77.25;
-  const secondRunner = hasPacer ? `<span class="race-progress-runner race-progress-runner-pacer race-progress-runner-anim" style="left: 0" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>` : '';
+  const fillWidth = skipFillTween ? progressPct : 0;
+  const runnerLeft = skipFillTween ? progressPct : 0;
+  const fillAnimClass = skipFillTween ? '' : ' race-progress-fill-anim';
+  const runnerAnimClass = skipFillTween ? '' : ' race-progress-runner-anim';
+  const secondRunner = hasPacer ? `<span class="race-progress-runner race-progress-runner-pacer${runnerAnimClass}" style="left: ${runnerLeft}%" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>` : '';
   const aidStationMarkers = (aidStations || []).filter((s) => s.km > 0 && s.km < RACE_DISTANCE_KM).map((s) => {
     const pct = (s.km / RACE_DISTANCE_KM) * 100;
     return `<span class="race-progress-aid-marker" style="left: ${pct}%" aria-hidden="true"></span>`;
@@ -285,9 +295,9 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
     <div class="race-progress-bar-wrap">
       <span class="race-progress-emoji" aria-hidden="true">🏁</span>
       <div class="race-progress-track">
-        <div class="race-progress-fill race-progress-fill-anim" style="width: 0"></div>
+        <div class="race-progress-fill${fillAnimClass}" style="width: ${fillWidth}%"></div>
         ${aidStationMarkers}
-        <span class="race-progress-runner race-progress-runner-anim" style="left: 0" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>
+        <span class="race-progress-runner${runnerAnimClass}" style="left: ${runnerLeft}%" data-target="${progressPct}" aria-hidden="true">${progressEmoji}</span>
         ${secondRunner}
       </div>
       <span class="race-progress-emoji" aria-hidden="true">💯</span>
@@ -297,14 +307,16 @@ function renderRaceProgress(container, lastSplit, totalRaceTime) {
       <p class="race-progress-total">Est. distance: ${progressKm.toFixed(1)} km</p>
     </div>
   `;
-  requestAnimationFrame(() => {
+  if (!skipFillTween) {
     requestAnimationFrame(() => {
-      const fill = container.querySelector('.race-progress-fill');
-      const runners = container.querySelectorAll('.race-progress-runner');
-      if (fill) fill.style.width = `${progressPct}%`;
-      runners.forEach((r) => { r.style.left = `${progressPct}%`; });
+      requestAnimationFrame(() => {
+        const fill = container.querySelector('.race-progress-fill');
+        const runners = container.querySelectorAll('.race-progress-runner');
+        if (fill) fill.style.width = `${progressPct}%`;
+        runners.forEach((r) => { r.style.left = `${progressPct}%`; });
+      });
     });
-  });
+  }
 }
 
 /** Format pace (minutes per km) as "X:XX/km". */
@@ -374,7 +386,7 @@ function renderProgressLine(container, lastSplit, etas) {
   container.innerHTML = `
     <div class="progress-line-inner">
       <div class="progress-station-wrap progress-next-wrap">
-        <div class="progress-station-label">Estimated arrival</div>
+        <div class="progress-station-label">Next aid station arrival estimate</div>
         <div class="progress-station progress-next">
           <span class="progress-time ${nextTimeClass}">${nextTime}</span>
           <span class="progress-name">${nextName}</span>
@@ -637,7 +649,7 @@ function refresh() {
         }
       }
     }
-    renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null);
+    renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null, testModeActive);
     renderFinishedSplits(document.getElementById('finished-splits'), isFinished ? (runner.splits || []) : [], runner.totalRaceTime ?? null);
     renderLastSplit(document.getElementById('last-split'), lastSplit);
     renderProgressLine(document.getElementById('progress-line'), lastSplit, etas);

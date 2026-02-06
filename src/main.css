@@ -545,6 +545,11 @@ body {
   gap: 0;
 }
 
+/* Nature Center (Zach pickup): same text color as non–Tyler's aid stations */
+.eta-list li.eta-row-with-reminder.crew-access {
+  color: inherit;
+}
+
 .eta-list li .pacer-reminder {
   text-align: center;
   padding: 0.5rem 0.75rem;

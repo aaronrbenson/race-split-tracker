@@ -142,7 +142,7 @@ export function initMap(container, options = {}) {
     aidStationMarkers = [];
     if (!track || track.points.length === 0) return;
     const latLngs = track.points.map((p) => [p.lat, p.lon]);
-    polyline = L.polyline(latLngs, { color: '#a0c8ff', weight: 4, opacity: 0.7 }).addTo(map);
+    polyline = L.polyline(latLngs, { color: '#e9a66c', weight: 4, opacity: 0.7 }).addTo(map);
 
     const aidDebug = new URLSearchParams(location.search).get('aidDebug') === '1';
     const trackLen = track.trackLengthKm;
@@ -234,7 +234,7 @@ export function initMap(container, options = {}) {
       const segmentPoints = getTrackSegmentPoints(currentTrack.points, lapStartTrackKm, currentTrackKm);
       if (segmentPoints.length >= 2) {
         const segmentLatLngs = segmentPoints.map((p) => [p.lat, p.lon]);
-        completedPolyline = L.polyline(segmentLatLngs, { color: '#2563eb', weight: 5, opacity: 0.95 }).addTo(map);
+        completedPolyline = L.polyline(segmentLatLngs, { color: '#c2410c', weight: 5, opacity: 0.95 }).addTo(map);
       }
     }
   }
