@@ -36,5 +36,8 @@ export const AID_STATIONS_KM = [
   { name: 'FINISH — Tyler\'s', km: 100.12, target: '9:30 PM', early: '8:30 PM', late: '10:30 PM', cutoff: '2:00 PM*', crewAccess: true },
 ];
 
-/** Race start time (race clock 0). Feb 7, 2026 7:00 AM local. */
-export const RACE_START_DATE = new Date('2026-02-07T07:00:00');
+/** Race start time (race clock 0). Feb 7, 2026 7:00 AM US Central (Huntsville, TX — CST = UTC-6). */
+export const RACE_START_DATE = new Date('2026-02-07T13:00:00.000Z');
+
+/** Race start as minutes from midnight (7:00 AM Central). Use for clock-time math (elapsed = clockMin - this). */
+export const RACE_START_MINUTES = 7 * 60;
