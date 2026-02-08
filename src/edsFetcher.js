@@ -1,6 +1,4 @@
-import { SPLITS_100K_KM } from './data.js';
-
-const RACE_START_MINUTES = 7 * 60; // 7:00 AM
+import { RACE_START_MINUTES, SPLITS_100K_KM } from './data.js';
 
 /** 6:00 AM CST Feb 7, 2026 — no requests to results site before this. */
 const RESULTS_ENABLED_AT_MS = new Date('2026-02-07T12:00:00.000Z').getTime();
@@ -88,6 +86,21 @@ function parseRunnerPage(html, bib) {
   return { name, bib, splits, totalRaceTime };
 }
 
+/** Hardcoded official results for Aaron (bib 545) — 2026 Rocky Raccoon 100K. */
+const HARDCODED_AARON = {
+  name: 'Aaron Benson',
+  bib: '545',
+  totalRaceTime: '14:44:19',
+  splits: [
+    { splitId: 'split1', km: SPLITS_100K_KM[0].km, clockTime: '9:16 AM' },
+    { splitId: 'split2', km: SPLITS_100K_KM[1].km, clockTime: '11:36 AM' },
+    { splitId: 'split3', km: SPLITS_100K_KM[2].km, clockTime: '1:51 PM' },
+    { splitId: 'split4', km: SPLITS_100K_KM[3].km, clockTime: '4:24 PM' },
+    { splitId: 'split5', km: SPLITS_100K_KM[4].km, clockTime: '6:54 PM' },
+    { splitId: 'split6', km: SPLITS_100K_KM[5].km, clockTime: '9:44 PM' },
+  ],
+};
+
 /**
  * Fetch runner info from EDS results page.
  * @param {string} baseUrl - e.g. http://edsresults.com/2025rr100/
@@ -96,6 +109,7 @@ function parseRunnerPage(html, bib) {
  */
 export async function fetchRunnerInfo(baseUrl, bib) {
   if (!baseUrl || !bib) return null;
+  if (bib === '545') return Promise.resolve(HARDCODED_AARON);
   if (Date.now() < RESULTS_ENABLED_AT_MS) return null;
   const url = buildRunnerUrl(baseUrl, bib);
   try {
