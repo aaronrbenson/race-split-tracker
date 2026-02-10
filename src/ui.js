@@ -1,7 +1,9 @@
-import { RACE_DISTANCE_KM, SPLITS_100K_KM } from './data.js';
+import { RACE_DISTANCE_KM, RACE_START_MINUTES, SPLITS_100K_KM } from './data.js';
 import { computeETAs } from './eta.js';
 import { fetchRunnerInfo } from './edsFetcher.js';
 import { isTestModeActive, getTestRunnerState, startTestMode } from './testMode.js';
+import { isDemoModeActive, getRandomDemoState } from './demoMode.js';
+import { isReplayActive, getReplayRunnerState, startReplay, isReplayFinished } from './replayRace.js';
 
 const DEFAULT_RESULTS_URL = 'http://edsresults.com/2026rr100/';
 const DEFAULT_BIB = 'TBD';
@@ -126,8 +128,6 @@ function setConfig({ resultsUrl, bib }) {
   if (resultsUrl != null) localStorage.setItem('rocky_results_url', resultsUrl);
   if (bib != null) localStorage.setItem('rocky_bib', bib);
 }
-
-const RACE_START_MINUTES = 7 * 60; // 7:00 AM
 
 /** Shared status thresholds (minutes behind plan). Used for both next aid station color and How's he doing. */
 const STATUS = {
@@ -536,6 +536,12 @@ function normalizeTimeInput(str) {
   return s;
 }
 
+function updateDemoStatusLabel(status) {
+  const el = document.getElementById('demo-mode-label');
+  if (!el) return;
+  el.textContent = status || '';
+}
+
 async function getRunnerData() {
   if (isTestModeActive()) {
     const state = getTestRunnerState();
@@ -549,6 +555,28 @@ async function getRunnerData() {
         testModeActive: true,
       });
     }
+  }
+  if (isReplayActive()) {
+    const state = getReplayRunnerState();
+    if (state) {
+      return Promise.resolve({
+        runner: {
+          splits: [{ km: state.km, clockTime: state.clockTime }],
+          totalRaceTime: state.totalRaceTime ?? null,
+        },
+        fallback: false,
+        replayActive: true,
+        replayFinished: isReplayFinished(),
+      });
+    }
+  }
+  if (isDemoModeActive()) {
+    const { km, clockTime } = getRandomDemoState(aidStations);
+    return Promise.resolve({
+      runner: { splits: [{ km, clockTime }], totalRaceTime: null },
+      fallback: false,
+      demoModeActive: true,
+    });
   }
   const admin = getAdminOverride();
   if (admin) {
@@ -576,13 +604,13 @@ async function getRunnerData() {
 }
 
 function refresh() {
-  getRunnerData().then(async ({ runner, fallback, adminActive, adminKm, adminTime, noBib, testModeActive }) => {
+  getRunnerData().then(async ({ runner, fallback, adminActive, adminKm, adminTime, noBib, testModeActive, demoModeActive, replayActive, replayFinished }) => {
     let splits = (runner.splits || []).map((s) => ({
       km: s.km,
       clockTime: s.clockTime,
       splitId: s.splitId,
     }));
-    if (!adminActive && !testModeActive) {
+    if (!adminActive && !testModeActive && !demoModeActive && !replayActive) {
       const bib = (getConfig().bib || '').trim();
       if (bib && bib !== 'TBD') {
         const checkin = await fetchFieldCheckin(bib);
@@ -616,11 +644,12 @@ function refresh() {
         }
       }
     }
-    renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null, testModeActive);
+    const skipStaleCheck = demoModeActive || replayActive;
+    renderRaceProgress(document.getElementById('race-progress'), lastSplit, runner.totalRaceTime ?? null, testModeActive || demoModeActive || replayActive);
     renderFinishedSplits(document.getElementById('finished-splits'), isFinished ? (runner.splits || []) : [], runner.totalRaceTime ?? null);
     renderLastSplit(document.getElementById('last-split'), lastSplit);
     renderProgressLine(document.getElementById('progress-line'), lastSplit, etas);
-    renderHowsHeDoing(document.getElementById('hows-he-doing'), lastSplit, etas, planDeltaAtLastSplit, isFinished, testModeActive);
+    renderHowsHeDoing(document.getElementById('hows-he-doing'), lastSplit, etas, planDeltaAtLastSplit, isFinished, skipStaleCheck);
     renderETAs(document.getElementById('eta-section'), etas, lastSplit?.km ?? null);
     const msgEl = document.getElementById('live-fallback-msg');
     if (msgEl) {
@@ -630,11 +659,18 @@ function refresh() {
         msgEl.textContent = state?.isFinished
           ? `Test mode${scenarioLabel} — finished.`
           : `Test mode${scenarioLabel} — mock runner in progress.`;
-      } else if (adminActive) msgEl.textContent = `Showing test position: ${adminKm.toFixed(1)} km at ${adminTime}`;
+      } else if (replayActive && !replayFinished) msgEl.textContent = 'Replay in progress.';
+      else if (demoModeActive || replayActive) msgEl.textContent = '';
+      else if (adminActive) msgEl.textContent = `Showing test position: ${adminKm.toFixed(1)} km at ${adminTime}`;
       else if (lastSplit?.label === 'Field check-in') msgEl.textContent = 'Latest position from runner check-in.';
       else if (fallback && !noBib) msgEl.textContent = 'Could not load live results.';
       else if (fallback && noBib) msgEl.textContent = '';
       else msgEl.textContent = '';
+    }
+    if (replayActive || demoModeActive) {
+      updateDemoStatusLabel('DEMO MODE');
+    } else {
+      updateDemoStatusLabel('');
     }
     if (typeof __rockyOnRunnerUpdate === 'function') __rockyOnRunnerUpdate({ lastSplit });
   });
@@ -679,6 +715,16 @@ export function init(options = {}) {
       }
       refresh();
       refreshBtn.blur();
+    });
+  }
+
+  const replayBtn = document.getElementById('replay-race-btn');
+  if (replayBtn) {
+    replayBtn.addEventListener('click', () => {
+      if (!isReplayActive()) {
+        startReplay(refresh, aidStations);
+        replayBtn.blur();
+      }
     });
   }
 

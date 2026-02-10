@@ -1309,6 +1309,48 @@ th {
   }
 }
 
+.header-title-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+.header-title-row h1 {
+  margin: 0;
+}
+.demo-mode-label {
+  display: none;
+  padding: 4px 0.5rem 0.2rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #5b7a9e 0%, #6b8299 100%);
+  border-radius: 4px;
+  line-height: 1;
+}
+.demo-mode-label:not(:empty) {
+  display: inline-block;
+}
+
+.replay-race-btn {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.replay-race-btn:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
 .footer {
   text-align: center;
   padding: 2rem 0;

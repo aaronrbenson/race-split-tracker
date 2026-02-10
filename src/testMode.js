@@ -1,6 +1,4 @@
-import { RACE_DISTANCE_KM } from './data.js';
-
-const RACE_START_MINUTES = 7 * 60; // 7:00 AM
+import { RACE_DISTANCE_KM, RACE_START_MINUTES } from './data.js';
 const DURATION_SEC = 120;
 
 /** Parse "9:15 AM" to minutes from midnight. */
@@ -33,7 +31,7 @@ function formatElapsed(totalMinutes) {
 }
 
 /** Interpolate plan target minutes at given km from aid stations. */
-function planTargetAtKm(km, aidStations) {
+export function planTargetAtKm(km, aidStations) {
   if (!aidStations || aidStations.length === 0) {
     const progress = km / RACE_DISTANCE_KM;
     return RACE_START_MINUTES + progress * 870; // fallback: linear 7 AM to ~9:30 PM
