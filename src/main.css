@@ -973,6 +973,8 @@ th {
 }
 
 /* ========== Nutrition & crew reference ========== */
+/* Typography scale: title 1rem → h3 0.875rem → body 0.8125rem → secondary 0.75rem → small 0.6875rem */
+
 .nutrition-guide {
   margin-bottom: 1.5rem;
   padding: 1rem 0;
@@ -1009,12 +1011,12 @@ th {
 }
 
 .nutrition-weather {
-  font-size: 0.75rem !important;
+  font-size: 0.75rem;
   opacity: 0.9;
 }
 
 .nutrition-guide h3 {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1023,7 +1025,7 @@ th {
 }
 
 .nutrition-guide h4 {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted);
   margin: 0 0 0.35rem;
@@ -1055,7 +1057,7 @@ th {
 }
 
 .nutrition-hourly-label {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: var(--muted);
   line-height: 1.3;
   display: block;
@@ -1077,11 +1079,6 @@ th {
   border-radius: var(--radius);
   padding: 0.6rem 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.nutrition-stop-card.nutrition-stop-key {
-  border-color: rgba(var(--crew-accent-rgb), 0.4);
-  background: rgba(var(--crew-accent-rgb), 0.08);
 }
 
 .nutrition-stop-name {
@@ -1162,24 +1159,23 @@ th {
   margin-bottom: 0.35rem;
 }
 
-.nutrition-jug-blue {
-  display: inline-block;
-  padding: 0.1rem 0.35rem;
-  background: rgba(88, 166, 255, 0.25);
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 0.75rem;
-  border-radius: 3px;
-}
-
+.nutrition-jug-blue,
 .nutrition-jug-orange {
   display: inline-block;
   padding: 0.1rem 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 3px;
+}
+
+.nutrition-jug-blue {
+  background: rgba(88, 166, 255, 0.25);
+  color: var(--accent);
+}
+
+.nutrition-jug-orange {
   background: rgba(var(--crew-accent-rgb), 0.25);
   color: var(--crew-accent);
-  font-weight: 600;
-  font-size: 0.75rem;
-  border-radius: 3px;
 }
 
 .nutrition-cramp {
@@ -1225,17 +1221,21 @@ th {
 
 .nutrition-warning-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
   padding: 0.5rem 0.6rem;
   background: var(--card-bg);
   border-radius: var(--radius);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.nutrition-warning-item.nutrition-warning-urgent {
-  border-color: rgba(var(--danger-vibrant), 0.35);
-  background: rgba(248, 81, 73, 0.08);
+.nutrition-warning-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .nutrition-warning-sign {
@@ -1249,6 +1249,32 @@ th {
   color: var(--muted);
   line-height: 1.35;
 }
+
+.nutrition-warning-severity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.nutrition-severity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.nutrition-severity-mild .nutrition-severity-dot { background: var(--muted); }
+.nutrition-severity-low .nutrition-severity-dot { background: rgba(200, 180, 80, 0.9); }
+.nutrition-severity-moderate .nutrition-severity-dot { background: rgba(220, 140, 60, 0.95); }
+.nutrition-severity-high .nutrition-severity-dot { background: rgba(220, 100, 60, 0.95); }
+.nutrition-severity-critical .nutrition-severity-dot { background: var(--danger-vibrant); }
+.nutrition-severity-critical { color: var(--danger-vibrant); }
 
 /* Nutrition guide: mobile stacking */
 @media (max-width: 360px) {
@@ -1264,19 +1290,21 @@ th {
 }
 
 @media (min-width: 480px) {
-  .nutrition-guide h3 {
-    font-size: 0.875rem;
-  }
   .nutrition-hourly-value {
     font-size: 0.875rem;
   }
   .nutrition-hourly-label {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
   }
+  .nutrition-mindset p,
+  .nutrition-stop-name,
   .nutrition-stop-actions-text,
   .nutrition-sodium-list,
   .nutrition-supplies-col ul,
-  .nutrition-aid-notes ul {
+  .nutrition-aid-notes ul,
+  .nutrition-cramp p,
+  .nutrition-cramp ol,
+  .nutrition-warning-sign {
     font-size: 0.875rem;
   }
 }
