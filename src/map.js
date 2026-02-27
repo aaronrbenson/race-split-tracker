@@ -54,16 +54,26 @@ export function initMap(container, options = {}) {
   const raceDistanceKm = options.raceDistanceKm ?? DEFAULT_RACE_KM;
   const numLoops = options.numLoops ?? 3;
   const firstLapAidKm = options.firstLapAidKm ?? DEFAULT_FIRST_LAP_AID_KM;
+  const background = options.background ?? false;
 
-  const map = L.map(container).setView([30.615, -95.534], 12);
-  centerMapForSheet(map);
+  const mapOpts = {
+    zoomControl: !background,
+    dragging: !background,
+    scrollWheelZoom: !background,
+    touchZoom: !background,
+    doubleClickZoom: !background,
+    ...(background && { zoomSnap: 0.1 }),
+  };
+  const map = L.map(container, mapOpts).setView([30.615, -95.534], 12);
+  if (!background) centerMapForSheet(map);
 
-  /* Label above map tiles (Leaflet panes use z-index 200–700; we use 750) */
-  const labelEl = document.createElement('span');
-  labelEl.className = 'map-surface-label';
-  labelEl.setAttribute('aria-hidden', 'true');
-  labelEl.textContent = 'Location is an estimate';
-  container.appendChild(labelEl);
+  if (!background) {
+    const labelEl = document.createElement('span');
+    labelEl.className = 'map-surface-label';
+    labelEl.setAttribute('aria-hidden', 'true');
+    labelEl.textContent = 'Location is an estimate';
+    container.appendChild(labelEl);
+  }
 
   /* Ensure tiles load correctly: invalidateSize after layout (handles timing/resize issues) */
   map.whenReady(() => {
@@ -76,7 +86,10 @@ export function initMap(container, options = {}) {
     : null;
   if (resizeObs && container) resizeObs.observe(container);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+  const tileUrl = background
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+  L.tileLayer(tileUrl, {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 20,
@@ -142,56 +155,65 @@ export function initMap(container, options = {}) {
     aidStationMarkers = [];
     if (!track || track.points.length === 0) return;
     const latLngs = track.points.map((p) => [p.lat, p.lon]);
-    polyline = L.polyline(latLngs, { color: '#e9a66c', weight: 4, opacity: 0.7 }).addTo(map);
+    const trackStyle = background
+      ? { color: '#e9a66c', weight: 3, opacity: 0.55 }
+      : { color: '#e9a66c', weight: 4, opacity: 0.7 };
+    polyline = L.polyline(latLngs, trackStyle).addTo(map);
 
-    const aidDebug = new URLSearchParams(location.search).get('aidDebug') === '1';
-    const trackLen = track.trackLengthKm;
-    const LOOP_MILES = 22.2;
+    if (!background) {
+      const aidDebug = new URLSearchParams(location.search).get('aidDebug') === '1';
+      const trackLen = track.trackLengthKm;
+      const LOOP_MILES = 22.2;
 
-    /* POIs: Tylers (start/finish) then aid stations; track km from AID_TRACK_KM or mile-based */
-    const tylersPoi = { name: 'Tylers', trackKm: AID_TRACK_KM.Tylers ?? 0 };
-    const aidPois = firstLapAidKm.map(({ name, mile }) => ({
-      name,
-      trackKm:
-        AID_TRACK_KM[name] != null
-          ? AID_TRACK_KM[name]
-          : (mile != null && LOOP_MILES > 0 ? Math.min(1, Math.max(0, mile / LOOP_MILES)) : 0) * trackLen,
-    }));
-    const pois = [tylersPoi, ...aidPois];
+      const tylersPoi = { name: 'Tylers', trackKm: AID_TRACK_KM.Tylers ?? 0 };
+      const aidPois = firstLapAidKm.map(({ name, mile }) => ({
+        name,
+        trackKm:
+          AID_TRACK_KM[name] != null
+            ? AID_TRACK_KM[name]
+            : (mile != null && LOOP_MILES > 0 ? Math.min(1, Math.max(0, mile / LOOP_MILES)) : 0) * trackLen,
+      }));
+      const pois = [tylersPoi, ...aidPois];
 
-    for (const { name, trackKm } of pois) {
-      const pos =
-        name === 'Tylers' && TYLERS_LATLON
-          ? { lat: TYLERS_LATLON.lat, lon: TYLERS_LATLON.lon }
-          : getPositionAtDistance(track.points, trackKm);
-      if (pos) {
-        const emoji = name === 'Tylers' ? '⭐' : '💧';
-        const m = L.marker([pos.lat, pos.lon], {
-          icon: aidStationIcon(name, emoji),
-          draggable: aidDebug,
-        }).addTo(map);
-        if (aidDebug) {
-          m.bindPopup('Drag to correct position').openPopup();
-          m.on('dragend', () => {
-            const latlng = m.getLatLng();
-            const km = getDistanceAlongTrack(track.points, latlng.lat, latlng.lng);
-            const text = `${name} — track km: ${km != null ? km.toFixed(2) : '—'} | lat: ${latlng.lat.toFixed(5)}, lon: ${latlng.lng.toFixed(5)}`;
-            m.setPopupContent(text).openPopup();
-          });
+      for (const { name, trackKm } of pois) {
+        const pos =
+          name === 'Tylers' && TYLERS_LATLON
+            ? { lat: TYLERS_LATLON.lat, lon: TYLERS_LATLON.lon }
+            : getPositionAtDistance(track.points, trackKm);
+        if (pos) {
+          const emoji = name === 'Tylers' ? '⭐' : '💧';
+          const m = L.marker([pos.lat, pos.lon], {
+            icon: aidStationIcon(name, emoji),
+            draggable: aidDebug,
+          }).addTo(map);
+          if (aidDebug) {
+            m.bindPopup('Drag to correct position').openPopup();
+            m.on('dragend', () => {
+              const latlng = m.getLatLng();
+              const km = getDistanceAlongTrack(track.points, latlng.lat, latlng.lng);
+              const text = `${name} — track km: ${km != null ? km.toFixed(2) : '—'} | lat: ${latlng.lat.toFixed(5)}, lon: ${latlng.lng.toFixed(5)}`;
+              m.setPopupContent(text).openPopup();
+            });
+          }
+          aidStationMarkers.push(m);
         }
-        aidStationMarkers.push(m);
       }
     }
 
     map.invalidateSize();
-    const sheetH = getSheetHeightPx();
-    map.fitBounds(track.bounds, {
-      paddingTopLeft: [24, 24],
-      paddingBottomRight: [24, sheetH],
-      maxZoom: 14,
-    });
-    centerMapForSheet(map);
-    setRunnerKm(lastRunnerKm);
+    if (background) {
+      map.fitBounds(track.bounds, { padding: [24, 24], maxZoom: 16 });
+      map.setZoom(map.getZoom() + 2.77);
+    } else {
+      const sheetH = getSheetHeightPx();
+      map.fitBounds(track.bounds, {
+        paddingTopLeft: [24, 24],
+        paddingBottomRight: [24, sheetH],
+        maxZoom: 14,
+      });
+      centerMapForSheet(map);
+    }
+    if (!background) setRunnerKm(lastRunnerKm);
   }
 
   let lastRunnerKm = null;
@@ -244,5 +266,11 @@ export function initMap(container, options = {}) {
     if (lastRunnerKm != null) setRunnerKm(lastRunnerKm);
   }
 
-  return { setTrack, setRunnerKm, setRaceStartKm };
+  function setTrackOpacity(o) {
+    if (polyline && background) polyline.setStyle({ opacity: o });
+  }
+
+  const api = { setTrack, setRunnerKm, setRaceStartKm };
+  if (background) api.setTrackOpacity = setTrackOpacity;
+  return api;
 }

@@ -1,0 +1,425 @@
+/* blog: map visible, content bg, route fade on scroll */
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --card-bg: rgba(18, 18, 18, 0.85);
+  --text: #e6edf3;
+  --text-body: rgba(220, 225, 232, 0.94);
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-rgb: 88, 166, 255;
+  --crew-accent: #e9a66c;
+  --crew-accent-rgb: 233, 166, 108;
+  --gold: #c9a227;
+  --gold-light: #f0d875;
+  --gold-rgb: 201, 162, 39;
+  --radius: 8px;
+  --card-radius: 10px;
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-body: 'Source Serif 4', Georgia, serif;
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --blog-max: 680px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ── Base ── */
+.blog-body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Map background layer ── */
+.blog-map-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.blog-map {
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+}
+
+.blog-map-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 10, 0.12) 0%,
+    rgba(10, 10, 10, 0.25) 40%,
+    rgba(10, 10, 10, 0.40) 70%,
+    rgba(10, 10, 10, 0.55) 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Article wrapper ── */
+.blog-article {
+  position: relative;
+  z-index: 1;
+  padding-top: 55vh;
+  padding-bottom: 10rem;
+}
+
+.blog-content {
+  max-width: var(--blog-max);
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 2rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+}
+
+/* ── Sections (split on <hr>) ── */
+.blog-section {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  margin-bottom: 1rem;
+}
+
+.blog-section-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Hero section (first section with title) ── */
+.blog-hero-section {
+  text-align: center;
+  padding: 3.5rem 0 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.blog-hero-section h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0 0 1rem;
+  color: #fff;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.6);
+}
+
+.blog-hero-section h2 {
+  font-family: var(--font-display);
+  font-size: clamp(0.6875rem, 1.5vw, 0.8125rem);
+  font-weight: 400;
+  font-style: normal;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.12em;
+  text-transform: none;
+  margin: -100px 0 0 0;
+  border: none;
+  padding: 0;
+  line-height: 1.6;
+}
+
+.blog-hero-section h2 .hero-date {
+  color: var(--crew-accent);
+}
+
+.blog-hero-section h2 .hero-location {
+  font-size: 0.5em;
+  letter-spacing: 0.18em;
+}
+
+.blog-hero-section p:first-of-type {
+  font-family: var(--font-body);
+  font-size: clamp(1.125rem, 3vw, 1.3125rem);
+  font-style: italic;
+  color: rgba(230, 237, 243, 0.8);
+  line-height: 1.7;
+  max-width: 540px;
+  margin: 2rem auto 0;
+  padding-bottom: 2rem;
+}
+
+/* ── Section headings ── */
+.blog-content h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 4.5rem 0 1.5rem;
+  padding: 0;
+  border: none;
+  color: #fff;
+  position: relative;
+}
+
+.blog-content h2::after {
+  content: '';
+  display: block;
+  width: 3rem;
+  height: 2px;
+  background: var(--crew-accent);
+  margin-top: 0.75rem;
+  opacity: 0.7;
+}
+
+.blog-hero-section h2::after {
+  display: none;
+}
+
+.blog-hero-section + .blog-section h2:first-child {
+  margin-top: 0;
+}
+
+.blog-content h3 {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 2.5rem 0 0.75rem;
+  color: var(--text);
+}
+
+/* ── Body typography ── */
+.blog-content p {
+  font-size: 1.125rem;
+  line-height: 1.85;
+  margin: 0 0 1.75rem;
+  color: var(--text-body);
+  hanging-punctuation: first allow-end last;
+}
+
+.blog-content strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.blog-content em {
+  font-style: italic;
+  color: var(--text-body);
+}
+
+.blog-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(88, 166, 255, 0.3);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.2s;
+}
+
+.blog-content a:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* ── Drop cap on first paragraph of each major section ── */
+.blog-section:not(.blog-hero-section) > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  float: left;
+  font-size: 3.8em;
+  line-height: 0.8;
+  font-weight: 900;
+  color: var(--crew-accent);
+  padding: 0.05em 0.1em 0 0;
+  margin-top: 0.05em;
+}
+
+/* ── Block quotes (pull-quote style) ── */
+.blog-content blockquote {
+  margin: 3rem -1rem;
+  padding: 2rem 2rem 2rem 2.5rem;
+  border-left: none;
+  border-top: 1px solid rgba(233, 166, 108, 0.3);
+  border-bottom: 1px solid rgba(233, 166, 108, 0.3);
+  background: transparent;
+  border-radius: 0;
+  position: relative;
+}
+
+.blog-content blockquote::before {
+  content: '\201C';
+  font-family: var(--font-display);
+  font-size: 5rem;
+  line-height: 1;
+  color: rgba(233, 166, 108, 0.25);
+  position: absolute;
+  top: -0.15em;
+  left: 0.5rem;
+}
+
+.blog-content blockquote p {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0 0 0.75rem;
+}
+
+.blog-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Lists ── */
+.blog-content ul,
+.blog-content ol {
+  padding-left: 1.5rem;
+  margin: 0 0 1.75rem;
+}
+
+.blog-content li {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  margin-bottom: 0.5rem;
+  color: var(--text-body);
+}
+
+/* ── Horizontal rules (dividers between sections) ── */
+.blog-content hr {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 4rem 0;
+}
+
+/* ── Section divider ornament (between major sections) ── */
+.blog-section + .blog-section::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: rgba(233, 166, 108, 0.35);
+  margin: 0 auto 3rem;
+}
+
+.blog-hero-section + .blog-section::before {
+  display: none;
+}
+
+/* ── Images ── */
+.blog-content img {
+  display: block;
+  max-width: calc(100% + 3rem);
+  width: calc(100% + 3rem);
+  margin-left: -1.5rem;
+  height: auto;
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+  border-radius: 2px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+.blog-content p:has(img) {
+  text-align: center;
+}
+
+/* ── Code (inline) ── */
+.blog-content code {
+  font-size: 0.85em;
+  padding: 0.15em 0.4em;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  font-family: var(--font-sans);
+  color: var(--crew-accent);
+}
+
+/* ── Loading / error ── */
+.blog-loading {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.blog-error {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+}
+
+/* ── Leaflet overrides for blog map ── */
+.blog-map .leaflet-control-attribution {
+  display: none;
+}
+
+.blog-map .leaflet-control-zoom {
+  display: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .blog-article {
+    padding-top: 40vh;
+  }
+
+  .blog-content {
+    padding: 0 1.25rem;
+  }
+
+  .blog-hero-section {
+    padding: 2rem 0 1.5rem;
+  }
+
+  .blog-hero-section h1 {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+
+  .blog-content p,
+  .blog-content li {
+    font-size: 1.0625rem;
+  }
+
+  .blog-content h2 {
+    font-size: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .blog-content img {
+    max-width: calc(100% + 2.5rem);
+    width: calc(100% + 2.5rem);
+    margin-left: -1.25rem;
+  }
+
+  .blog-content blockquote {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    padding: 1.5rem 1.25rem 1.5rem 1.75rem;
+  }
+
+  .blog-content blockquote p {
+    font-size: 1.1875rem;
+  }
+
+  .blog-section:not(.blog-hero-section) > p:first-of-type::first-letter {
+    font-size: 3.2em;
+  }
+}
+
+@media (min-width: 900px) {
+  .blog-content {
+    padding: 0 2rem;
+  }
+
+  .blog-content img {
+    max-width: calc(100% + 8rem);
+    width: calc(100% + 8rem);
+    margin-left: -4rem;
+  }
+
+  .blog-content blockquote {
+    margin-left: -3rem;
+    margin-right: -3rem;
+    padding: 2.5rem 3rem 2.5rem 3.5rem;
+  }
+}

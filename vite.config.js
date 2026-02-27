@@ -10,6 +10,7 @@ export default defineConfig({
         main: 'index.html',
         checkin: 'checkin.html',
         course: 'course.html',
+        raceReport: 'race-report/index.html',
       },
     },
   },
