@@ -127,7 +127,7 @@ Within a few kilometers of the finish, my legs felt good enough and the cramping
 
 Zach and I ran it in, side by side, to the sound of cowbells and cheers and the smiling faces of my wife, daughter, and youngest son waiting at the finish.
 
-I came through at 14 hours and 40 minutes. 27th overall.
+I came through at 14 hours and 44 minutes and 40 seconds. 27th overall.
 
 The furthest from "home" I'd ever been.
 
